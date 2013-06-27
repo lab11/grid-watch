@@ -3,6 +3,18 @@
 
     <string name="app_name">GridWatch</string>
     <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
+
+    <string name="title_text">Grid Watch</string>
+    
+    <string name="charger_status">Charger Status:</string>
+    <string name="current_location">Current Location:</string>
+    <string name="force_location_update">Force Location Update</string>
+    <string name="accel_status">Accelerometer Status:</string>
+    <string name="force_accel_update">Force Accelerometer Update</string>
+    
+    <string name="power_ac">AC Power</string>
+    <string name="power_usb">USB Power</string>
+    <string name="power_wireless">Wireless Power</string>
+    <string name="power_none">On Battery</string>
 
 </resources>
