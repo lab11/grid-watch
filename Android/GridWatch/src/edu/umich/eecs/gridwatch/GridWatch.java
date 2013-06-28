@@ -4,6 +4,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
@@ -14,10 +18,16 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.TextView;
 
-public class GridWatch extends Activity {
+public class GridWatch extends Activity implements SensorEventListener {
 	TextView mChargerStatus;
 	TextView mDockStatus;
 	TextView mCurrentLocation;
+	TextView mAccelStatus;
+	
+	LocationManager mLocationManager;
+	
+	SensorManager mSensorManager;
+	Sensor mAccel;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +37,12 @@ public class GridWatch extends Activity {
 		mChargerStatus = (TextView) findViewById(R.id.charger_status);
 		mDockStatus = (TextView) findViewById(R.id.dock_status);
 		mCurrentLocation = (TextView) findViewById(R.id.current_location);
+		mAccelStatus = (TextView) findViewById(R.id.accel_status);
+		
+		mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+		
+		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+		mAccel = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 	}
 	
 	@Override
@@ -36,6 +52,14 @@ public class GridWatch extends Activity {
 		updateBattery();
 		updateDock();
 		updateLocation();
+		updateAccel();
+	}
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		
+		mSensorManager.unregisterListener(this);
 	}
 
 	@Override
@@ -95,14 +119,13 @@ public class GridWatch extends Activity {
 	}
 	
 	private void updateLocation() {
-		LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-		String provider = locationManager.getBestProvider(new Criteria(), false);
+		String provider = mLocationManager.getBestProvider(new Criteria(), false);
 		if (provider == null) {
 			mCurrentLocation.setText(R.string.loc_no_provider);
 			return;
 		}
 		
-		Location location = locationManager.getLastKnownLocation(provider);
+		Location location = mLocationManager.getLastKnownLocation(provider);
 		mCurrentLocation.setText("Provider: " + location.getProvider()
 				+ "\nLat: " + location.getLatitude()
 				+ "\nLon: " + location.getLongitude()
@@ -113,5 +136,28 @@ public class GridWatch extends Activity {
 	
 	public void forceLocationUpdate(View view) {
 		updateLocation();
+	}
+	
+	private void updateAccel() {
+		if (mAccel == null) {
+			mAccelStatus.setText(R.string.accel_none);
+			return;
+		}
+		
+		mSensorManager.registerListener(this, mAccel, SensorManager.SENSOR_DELAY_NORMAL);
+	}
+	
+	@Override
+	public final void onAccuracyChanged(Sensor sensor, int accuracy) {
+		// Do something here if sensor accuracy changes.
+	}
+	
+	@Override
+	public final void onSensorChanged(SensorEvent event) {
+		mAccelStatus.setText(
+				"x axis: " + event.values[0] + "\n" +
+				"y axis: " + event.values[1] + "\n" +
+				"z axis: " + event.values[2]
+		);
 	}
 }

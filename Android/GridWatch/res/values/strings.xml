@@ -26,5 +26,7 @@
     <string name="dock_unsupported">Dock API Unsupported</string>
     
     <string name="loc_no_provider">No Location Provider</string>
+    
+    <string name="accel_none">No Accelerometer Present</string>
 
 </resources>
