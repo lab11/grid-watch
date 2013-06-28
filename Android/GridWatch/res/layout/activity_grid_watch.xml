@@ -60,7 +60,8 @@
             <Button
                 android:id="@+id/force_location_update"
                 android:layout_span="2"
-                android:text="@string/force_location_update" />
+                android:text="@string/force_location_update"
+                android:onClick="forceLocationUpdate" />
         </TableRow>
 
         <TableRow

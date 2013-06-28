@@ -11,6 +11,7 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.View;
 import android.widget.TextView;
 
 public class GridWatch extends Activity {
@@ -108,5 +109,9 @@ public class GridWatch extends Activity {
 				+ "\nAccuracy: " + location.getAccuracy() + "m"
 				+ "\nTime: " + location.getTime()
 				);
+	}
+	
+	public void forceLocationUpdate(View view) {
+		updateLocation();
 	}
 }
