@@ -19,7 +19,7 @@
         android:layout_height="wrap_content" >
 
         <TableRow
-            android:id="@+id/tableRow1"
+            android:id="@+id/tableRow0"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" >
             
@@ -27,6 +27,17 @@
                 android:text="@string/charger_status" />
             <TextView
                 android:id="@+id/charger_status" />
+        </TableRow>
+        
+        <TableRow
+            android:id="@+id/tableRow1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+            
+            <TextView
+                android:text="@string/dock_status" />
+            <TextView
+                android:id="@+id/dock_status" />
         </TableRow>
 
         <TableRow

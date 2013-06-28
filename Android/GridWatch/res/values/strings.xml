@@ -7,6 +7,7 @@
     <string name="title_text">Grid Watch</string>
     
     <string name="charger_status">Charger Status:</string>
+    <string name="dock_status">Dock Status:</string>
     <string name="current_location">Current Location:</string>
     <string name="force_location_update">Force Location Update</string>
     <string name="accel_status">Accelerometer Status:</string>
@@ -16,5 +17,12 @@
     <string name="power_usb">USB Power</string>
     <string name="power_wireless">Wireless Power</string>
     <string name="power_none">On Battery</string>
+    <string name="power_err">Error Querying Power Status</string>
+    
+    <string name="dock_car">Car Dock</string>
+    <string name="dock_desk">Desk Dock</string>
+    <string name="dock_none">Not Docked</string>
+    <string name="dock_err">Error Querying Dock Status</string>
+    <string name="dock_unsupported">Dock API Unsupported</string>
 
 </resources>
