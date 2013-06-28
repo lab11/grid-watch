@@ -58,6 +58,7 @@ public final class R {
         public static final int dock_unsupported=0x7f050012;
         public static final int force_accel_update=0x7f050008;
         public static final int force_location_update=0x7f050006;
+        public static final int loc_no_provider=0x7f050013;
         public static final int power_ac=0x7f050009;
         public static final int power_err=0x7f05000d;
         public static final int power_none=0x7f05000c;

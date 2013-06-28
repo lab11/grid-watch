@@ -1,8 +1,12 @@
 package edu.umich.eecs.gridwatch;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -12,6 +16,7 @@ import android.widget.TextView;
 public class GridWatch extends Activity {
 	TextView mChargerStatus;
 	TextView mDockStatus;
+	TextView mCurrentLocation;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -20,6 +25,7 @@ public class GridWatch extends Activity {
 		
 		mChargerStatus = (TextView) findViewById(R.id.charger_status);
 		mDockStatus = (TextView) findViewById(R.id.dock_status);
+		mCurrentLocation = (TextView) findViewById(R.id.current_location);
 	}
 	
 	@Override
@@ -28,6 +34,7 @@ public class GridWatch extends Activity {
 
 		updateBattery();
 		updateDock();
+		updateLocation();
 	}
 
 	@Override
@@ -84,5 +91,22 @@ public class GridWatch extends Activity {
 				mDockStatus.setText(R.string.dock_none);
 			}
 		}
+	}
+	
+	private void updateLocation() {
+		LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+		String provider = locationManager.getBestProvider(new Criteria(), false);
+		if (provider == null) {
+			mCurrentLocation.setText(R.string.loc_no_provider);
+			return;
+		}
+		
+		Location location = locationManager.getLastKnownLocation(provider);
+		mCurrentLocation.setText("Provider: " + location.getProvider()
+				+ "\nLat: " + location.getLatitude()
+				+ "\nLon: " + location.getLongitude()
+				+ "\nAccuracy: " + location.getAccuracy() + "m"
+				+ "\nTime: " + location.getTime()
+				);
 	}
 }
