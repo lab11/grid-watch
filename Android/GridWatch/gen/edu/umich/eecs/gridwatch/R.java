@@ -45,7 +45,9 @@ public final class R {
         public static final int grid_watch=0x7f070000;
     }
     public static final class string {
+        public static final int accel_moved=0x7f050015;
         public static final int accel_none=0x7f050014;
+        public static final int accel_static=0x7f050016;
         public static final int accel_status=0x7f050007;
         public static final int action_settings=0x7f050001;
         public static final int app_name=0x7f050000;

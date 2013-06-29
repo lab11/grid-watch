@@ -28,5 +28,7 @@
     <string name="loc_no_provider">No Location Provider</string>
     
     <string name="accel_none">No Accelerometer Present</string>
+    <string name="accel_moved">Device Moved!</string>
+    <string name="accel_static">Device has not moved.</string>
 
 </resources>

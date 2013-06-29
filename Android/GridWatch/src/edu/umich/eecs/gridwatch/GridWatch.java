@@ -28,6 +28,7 @@ public class GridWatch extends Activity implements SensorEventListener {
 	
 	SensorManager mSensorManager;
 	Sensor mAccel;
+	private float[][] mAccelHistory;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -154,10 +155,38 @@ public class GridWatch extends Activity implements SensorEventListener {
 	
 	@Override
 	public final void onSensorChanged(SensorEvent event) {
+		String moved = getString(R.string.accel_static);
+		
+		if (mAccelHistory == null) {
+			mAccelHistory = new float[10][3];
+			
+			for (int i=0; i<10; i++) {
+				mAccelHistory[i][0] = event.values[0];
+				mAccelHistory[i][1] = event.values[1];
+				mAccelHistory[i][2] = event.values[2];
+			}
+		} else {
+			int i = (int) ((event.timestamp / 500000000) % 10);
+			mAccelHistory[i][0] = event.values[0];
+			mAccelHistory[i][1] = event.values[1];
+			mAccelHistory[i][2] = event.values[2];
+			
+			for (int j=0; j<10; j++) {
+				if (Math.abs(mAccelHistory[j][0]-mAccelHistory[i][0]) > 2)
+					moved = getString(R.string.accel_moved);
+				if (Math.abs(mAccelHistory[j][1]-mAccelHistory[i][1]) > 2)
+					moved = getString(R.string.accel_moved);
+				if (Math.abs(mAccelHistory[j][2]-mAccelHistory[i][2]) > 2)
+					moved = getString(R.string.accel_moved);
+			}
+		}
+		
 		mAccelStatus.setText(
+				moved + "\n" +
 				"x axis: " + event.values[0] + "\n" +
 				"y axis: " + event.values[1] + "\n" +
-				"z axis: " + event.values[2]
+				"z axis: " + event.values[2] + "\n" +
+				"  time: " + (event.timestamp / 500000000) % 10 + "s"
 		);
 	}
 }
