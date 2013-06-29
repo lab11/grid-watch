@@ -9,6 +9,7 @@
         android:targetSdkVersion="17" />
     
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     
     <uses-feature android:name="android.hardware.sensor.accelerometer"
               android:required="false" />
@@ -28,12 +29,22 @@
             </intent-filter>
         </activity>
         
-        <receiver android:name=".PowerConnectionReceiver">
+        <!--
+        <receiver android:name=".GridWatchServiceReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
             </intent-filter>
         </receiver>
+        -->
+        
+        <service 
+            android:name=".GridWatchService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

@@ -49,6 +49,9 @@ public class GridWatch extends Activity implements SensorEventListener {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		
+		Intent intent = new Intent(this, GridWatchService.class);
+		startService(intent);
 
 		updateBattery();
 		updateDock();
