@@ -21,6 +21,8 @@ public class GridWatchService extends Service implements SensorEventListener {
 				onPowerConnected();
 			else if (intent.getAction().equals(Intent.ACTION_POWER_DISCONNECTED))
 				onPowerDisconnected();
+			else if (intent.getAction().equals(Intent.ACTION_DOCK_EVENT))
+				onDockEvent(intent);
 			else
 				Log.d("GridWatchService", "Unknown intent: " + intent.getAction());
 		}
@@ -30,6 +32,8 @@ public class GridWatchService extends Service implements SensorEventListener {
 	private Sensor mAccel;
 	private long mAccelFirstTime;
 	private float[][] mAccelHistory;
+	
+	private boolean mDockCar = false;
 	
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -42,6 +46,7 @@ public class GridWatchService extends Service implements SensorEventListener {
 		IntentFilter ifilter = new IntentFilter();
 		ifilter.addAction(Intent.ACTION_POWER_CONNECTED);
 		ifilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+		ifilter.addAction(Intent.ACTION_DOCK_EVENT);
 		this.registerReceiver(mBroadcastReceiver, ifilter);
 		
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -67,6 +72,12 @@ public class GridWatchService extends Service implements SensorEventListener {
 	private void onPowerDisconnected() {
 		Log.d("GridWatchService", "onPowerDisconnected called");
 		mSensorManager.registerListener(this, mAccel, SensorManager.SENSOR_DELAY_NORMAL);
+	}
+	
+	private void onDockEvent(Intent intent) {
+		int dockState = intent.getIntExtra(Intent.EXTRA_DOCK_STATE, -1);
+		mDockCar = dockState == Intent.EXTRA_DOCK_STATE_CAR;
+		Log.d("GridWatchService", "mDockCar set to " + mDockCar);
 	}
 	
 	@Override
