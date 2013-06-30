@@ -9,9 +9,7 @@
     <string name="charger_status">Charger Status:</string>
     <string name="dock_status">Dock Status:</string>
     <string name="current_location">Current Location:</string>
-    <string name="force_location_update">Update Location</string>
     <string name="accel_status">Accelerometer Status:</string>
-    <string name="force_accel_update">Update Accelerometer</string>
     
     <string name="power_ac">AC Power</string>
     <string name="power_usb">USB Power</string>
