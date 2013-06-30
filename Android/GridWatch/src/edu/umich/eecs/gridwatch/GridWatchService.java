@@ -1,5 +1,18 @@
 package edu.umich.eecs.gridwatch;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,7 +22,12 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.IBinder;
+import android.provider.Settings.Secure;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -33,6 +51,8 @@ public class GridWatchService extends Service implements SensorEventListener {
 	private long mAccelFirstTime;
 	private float[][] mAccelHistory;
 	
+	private LocationManager mLocationManager;
+	
 	private boolean mDockCar = false;
 	
 	@Override
@@ -51,6 +71,8 @@ public class GridWatchService extends Service implements SensorEventListener {
 		
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		mAccel = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		
+		mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 		
 		Log.d("GridWatchService", "service started");
 		Toast.makeText(this, "service started", Toast.LENGTH_SHORT).show();
@@ -131,12 +153,57 @@ public class GridWatchService extends Service implements SensorEventListener {
 				
 				if (!moved) {
 					Log.d("GridWatchService", "no movement found, should trigger");
-					Toast.makeText(this, "Should trigger", Toast.LENGTH_SHORT).show();
+					new PostAlertTask().execute();
 				} else {
-					Log.d("GridWatchService", "now how'd we get here?");
+					Log.w("GridWatchService", "now how'd we get here?");
 				}
 			}
 		}
+	}
+	
+	private class PostAlertTask extends AsyncTask<Void, Void, Void> {
 
+		@Override
+		protected Void doInBackground(Void... arg0) {
+			Log.d("GridWatchService", "PostAlertTask start");
+			
+			double lat, lon;
+			String provider = null;
+			if (mLocationManager != null)
+				provider = mLocationManager.getBestProvider(new Criteria(), false);
+			if (provider != null) {
+				Location location = mLocationManager.getLastKnownLocation(provider);
+				lat = location.getLatitude();
+				lon = location.getLongitude();
+			} else {
+				Log.d("GridWatchService", "Couldn't get a location");
+				lat = -1;
+				lon = -1;
+			}
+			
+			HttpClient httpclient = new DefaultHttpClient();
+			HttpPost httppost = new HttpPost("http://requestb.in/1e58wrt1");
+			
+			try {
+				String phoneId = Secure.getString(getBaseContext().getContentResolver(), Secure.ANDROID_ID);
+				
+				List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+				nameValuePairs.add(new BasicNameValuePair("id", phoneId));
+				nameValuePairs.add(new BasicNameValuePair("time", String.valueOf(System.currentTimeMillis())));
+				nameValuePairs.add(new BasicNameValuePair("lat", String.valueOf(lat)));
+				nameValuePairs.add(new BasicNameValuePair("lon", String.valueOf(lon)));
+				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+			
+				HttpResponse response = httpclient.execute(httppost);
+				Log.d("GridWatchService", "POST response: " + response);
+			} catch (ClientProtocolException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return null;
+		}
 	}
 }
