@@ -21,87 +21,17 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/title_text" />
-
-    <TableLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
-
-        <TableRow
-            android:id="@+id/tableRow0"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" >
-            
-            <TextView
-                android:text="@string/charger_status" />
-            <TextView
-                android:id="@+id/charger_status" />
-        </TableRow>
-        
-        <TableRow
-            android:id="@+id/tableRow1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" >
-            
-            <TextView
-                android:text="@string/dock_status" />
-            <TextView
-                android:id="@+id/dock_status" />
-        </TableRow>
-
-        <TableRow
-            android:id="@+id/tableRow2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" >
-            
-            <TextView
-                android:text="@string/current_location" />
-            <TextView
-                android:id="@+id/current_location" />
-        </TableRow>
-
-        <TableRow
-            android:id="@+id/tableRow3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" >
-        </TableRow>
-
-        <TableRow
-            android:id="@+id/tableRow4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" >
-            
-            <TextView
-                android:text="@string/accel_status" />
-            <TextView
-                android:id="@+id/accel_status" />
-        </TableRow>
-
-        <TableRow
-            android:id="@+id/tableRow5"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" >
-        </TableRow>
-        
-    </TableLayout>
-
+    
 	<TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="Reported from service" />
-    
-    <TableLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
-
-        <TableRow
-            android:id="@+id/tableRow6"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" >
-        </TableRow>
-
-
-    </TableLayout>
+        android:text="Service is active" />
+	
+	<TextView
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:id="@+id/status_text" />
 
 </LinearLayout>
 

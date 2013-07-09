@@ -24,18 +24,8 @@ public final class R {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
-        public static final int accel_status=0x7f080008;
-        public static final int action_settings=0x7f08000b;
-        public static final int charger_status=0x7f080001;
-        public static final int current_location=0x7f080005;
-        public static final int dock_status=0x7f080003;
-        public static final int tableRow0=0x7f080000;
-        public static final int tableRow1=0x7f080002;
-        public static final int tableRow2=0x7f080004;
-        public static final int tableRow3=0x7f080006;
-        public static final int tableRow4=0x7f080007;
-        public static final int tableRow5=0x7f080009;
-        public static final int tableRow6=0x7f08000a;
+        public static final int action_settings=0x7f080001;
+        public static final int status_text=0x7f080000;
     }
     public static final class layout {
         public static final int activity_grid_watch=0x7f030000;

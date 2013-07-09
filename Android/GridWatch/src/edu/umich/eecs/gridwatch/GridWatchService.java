@@ -28,6 +28,7 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.provider.Settings.Secure;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -46,6 +47,13 @@ public class GridWatchService extends Service implements SensorEventListener {
 		}
 	};
 	
+	private void updateIntent() {
+		Log.d("GridWatchService", "Send Update UI Intent");
+		LocalBroadcastManager.getInstance(this).sendBroadcast(mLocalIntent);
+	}
+	
+	private Intent mLocalIntent;
+	
 	private SensorManager mSensorManager;
 	private Sensor mAccel;
 	private long mAccelFirstTime;
@@ -60,9 +68,27 @@ public class GridWatchService extends Service implements SensorEventListener {
 		// Service does not allow binding
 		return null;
 	}
+	
+	// This is the old onStart method that will be called on the pre-2.0
+	// platform.  On 2.0 or later we override onStartCommand() so this
+	// method will not be called.
+	@Override
+	public void onStart(Intent intent, int startId) {
+	    updateIntent();
+	}
+
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+	    updateIntent();
+	    // We want this service to continue running until it is explicitly
+	    // stopped, so return sticky.
+	    return START_STICKY;
+	}
 
 	@Override
 	public void onCreate() {
+		mLocalIntent = new Intent("GridWatch-update-event");
+		
 		IntentFilter ifilter = new IntentFilter();
 		ifilter.addAction(Intent.ACTION_POWER_CONNECTED);
 		ifilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
@@ -167,18 +193,20 @@ public class GridWatchService extends Service implements SensorEventListener {
 		protected Void doInBackground(Void... arg0) {
 			Log.d("GridWatchService", "PostAlertTask start");
 			
-			double lat, lon;
+			double lat = -1, lon = -1;
 			String provider = null;
 			if (mLocationManager != null)
 				provider = mLocationManager.getBestProvider(new Criteria(), false);
 			if (provider != null) {
 				Location location = mLocationManager.getLastKnownLocation(provider);
-				lat = location.getLatitude();
-				lon = location.getLongitude();
+				if (location != null) {
+					lat = location.getLatitude();
+					lon = location.getLongitude();
+				} else {
+					Log.d("GridWatchService", "Location Provider Unavailable");
+				}
 			} else {
-				Log.d("GridWatchService", "Couldn't get a location");
-				lat = -1;
-				lon = -1;
+				Log.d("GridWatchService", "Couldn't get a location provider");
 			}
 			
 			HttpClient httpclient = new DefaultHttpClient();
@@ -193,9 +221,17 @@ public class GridWatchService extends Service implements SensorEventListener {
 				nameValuePairs.add(new BasicNameValuePair("lat", String.valueOf(lat)));
 				nameValuePairs.add(new BasicNameValuePair("lon", String.valueOf(lon)));
 				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+				
+				mLocalIntent.putExtra("id", nameValuePairs.get(0).getValue());
+				mLocalIntent.putExtra("time", nameValuePairs.get(1).getValue());
+				mLocalIntent.putExtra("lat", nameValuePairs.get(2).getValue());
+				mLocalIntent.putExtra("lon", nameValuePairs.get(3).getValue());
+				mLocalIntent.putExtra("resp",  "sending failed");
 			
 				HttpResponse response = httpclient.execute(httppost);
 				Log.d("GridWatchService", "POST response: " + response);
+				
+				mLocalIntent.putExtra("resp", "send success");
 			} catch (ClientProtocolException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -203,6 +239,8 @@ public class GridWatchService extends Service implements SensorEventListener {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			
+			updateIntent();
 			return null;
 		}
 	}
