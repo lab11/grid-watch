@@ -1,0 +1,445 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		7ACDEF321772419000CABF57 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7ACDEF311772418F00CABF57 /* UIKit.framework */; };
+		7ACDEF341772419000CABF57 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7ACDEF331772419000CABF57 /* Foundation.framework */; };
+		7ACDEF361772419000CABF57 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7ACDEF351772419000CABF57 /* CoreGraphics.framework */; };
+		7ACDEF3C1772419000CABF57 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 7ACDEF3A1772419000CABF57 /* InfoPlist.strings */; };
+		7ACDEF3E1772419000CABF57 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 7ACDEF3D1772419000CABF57 /* main.m */; };
+		7ACDEF421772419000CABF57 /* chargingAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 7ACDEF411772419000CABF57 /* chargingAppDelegate.m */; };
+		7ACDEF441772419000CABF57 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 7ACDEF431772419000CABF57 /* Default.png */; };
+		7ACDEF461772419000CABF57 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7ACDEF451772419000CABF57 /* Default@2x.png */; };
+		7ACDEF481772419000CABF57 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7ACDEF471772419000CABF57 /* Default-568h@2x.png */; };
+		7ACDEF4B1772419000CABF57 /* MainStoryboard_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7ACDEF491772419000CABF57 /* MainStoryboard_iPhone.storyboard */; };
+		7ACDEF4E1772419000CABF57 /* MainStoryboard_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7ACDEF4C1772419000CABF57 /* MainStoryboard_iPad.storyboard */; };
+		7ACDEF511772419000CABF57 /* chargingViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7ACDEF501772419000CABF57 /* chargingViewController.m */; };
+		7ACDEF5A1772460800CABF57 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7ACDEF591772460800CABF57 /* CoreLocation.framework */; };
+		7ACDEF5C177257C100CABF57 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7ACDEF5B177257C100CABF57 /* SystemConfiguration.framework */; };
+		7ACDEF5E177258D500CABF57 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7ACDEF5D177258D500CABF57 /* CoreMotion.framework */; };
+		7ACDEF7917727B6D00CABF57 /* AFHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 7ACDEF6717727B6D00CABF57 /* AFHTTPClient.m */; };
+		7ACDEF7A17727B6D00CABF57 /* AFHTTPRequestOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 7ACDEF6917727B6D00CABF57 /* AFHTTPRequestOperation.m */; };
+		7ACDEF7B17727B6D00CABF57 /* AFImageRequestOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 7ACDEF6B17727B6D00CABF57 /* AFImageRequestOperation.m */; };
+		7ACDEF7C17727B6D00CABF57 /* AFJSONRequestOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 7ACDEF6D17727B6D00CABF57 /* AFJSONRequestOperation.m */; };
+		7ACDEF7D17727B6D00CABF57 /* AFNetworkActivityIndicatorManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 7ACDEF6F17727B6D00CABF57 /* AFNetworkActivityIndicatorManager.m */; };
+		7ACDEF7E17727B6D00CABF57 /* AFPropertyListRequestOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 7ACDEF7217727B6D00CABF57 /* AFPropertyListRequestOperation.m */; };
+		7ACDEF7F17727B6D00CABF57 /* AFURLConnectionOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 7ACDEF7417727B6D00CABF57 /* AFURLConnectionOperation.m */; };
+		7ACDEF8017727B6D00CABF57 /* AFXMLRequestOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 7ACDEF7617727B6D00CABF57 /* AFXMLRequestOperation.m */; };
+		7ACDEF8117727B6D00CABF57 /* UIImageView+AFNetworking.m in Sources */ = {isa = PBXBuildFile; fileRef = 7ACDEF7817727B6D00CABF57 /* UIImageView+AFNetworking.m */; };
+		7ACDEF83177280B500CABF57 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7ACDEF82177280B500CABF57 /* AdSupport.framework */; };
+		7AF53F541773504600365DF9 /* logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 7AF53F531773504600365DF9 /* logo.png */; };
+		7AF53F5A1773512600365DF9 /* mlogo.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 7AF53F591773512600365DF9 /* mlogo.jpg */; };
+		7AF53F5C177353F900365DF9 /* logo-01.png in Resources */ = {isa = PBXBuildFile; fileRef = 7AF53F5B177353F900365DF9 /* logo-01.png */; };
+		7AF53F5E1773551700365DF9 /* logo2-01.png in Resources */ = {isa = PBXBuildFile; fileRef = 7AF53F5D1773551700365DF9 /* logo2-01.png */; };
+		7AF53F621773565F00365DF9 /* logo5757-01.png in Resources */ = {isa = PBXBuildFile; fileRef = 7AF53F611773565F00365DF9 /* logo5757-01.png */; };
+		7AF53F641773568300365DF9 /* logo5757-01.png in Resources */ = {isa = PBXBuildFile; fileRef = 7AF53F631773568300365DF9 /* logo5757-01.png */; };
+		7AF53F6A177363CB00365DF9 /* LocationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 7AF53F69177363CB00365DF9 /* LocationManager.m */; };
+		7AF53F781774DF0E00365DF9 /* help.png in Resources */ = {isa = PBXBuildFile; fileRef = 7AF53F771774DF0E00365DF9 /* help.png */; };
+		7AF53F7A1774DF4800365DF9 /* Scanner.png in Resources */ = {isa = PBXBuildFile; fileRef = 7AF53F791774DF4800365DF9 /* Scanner.png */; };
+		7AF53F7C1774DF5400365DF9 /* connect-alt-2.png in Resources */ = {isa = PBXBuildFile; fileRef = 7AF53F7B1774DF5400365DF9 /* connect-alt-2.png */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		7ACDEF2E1772418F00CABF57 /* Grid Charger.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Grid Charger.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7ACDEF311772418F00CABF57 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		7ACDEF331772419000CABF57 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		7ACDEF351772419000CABF57 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		7ACDEF391772419000CABF57 /* Grid Charger-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Grid Charger-Info.plist"; sourceTree = "<group>"; };
+		7ACDEF3B1772419000CABF57 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		7ACDEF3D1772419000CABF57 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		7ACDEF3F1772419000CABF57 /* Grid Charger-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Grid Charger-Prefix.pch"; sourceTree = "<group>"; };
+		7ACDEF401772419000CABF57 /* chargingAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = chargingAppDelegate.h; sourceTree = "<group>"; };
+		7ACDEF411772419000CABF57 /* chargingAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = chargingAppDelegate.m; sourceTree = "<group>"; };
+		7ACDEF431772419000CABF57 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
+		7ACDEF451772419000CABF57 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
+		7ACDEF471772419000CABF57 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		7ACDEF4A1772419000CABF57 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
+		7ACDEF4D1772419000CABF57 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
+		7ACDEF4F1772419000CABF57 /* chargingViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = chargingViewController.h; sourceTree = "<group>"; };
+		7ACDEF501772419000CABF57 /* chargingViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = chargingViewController.m; sourceTree = "<group>"; };
+		7ACDEF591772460800CABF57 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		7ACDEF5B177257C100CABF57 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		7ACDEF5D177258D500CABF57 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
+		7ACDEF6617727B6D00CABF57 /* AFHTTPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFHTTPClient.h; sourceTree = "<group>"; };
+		7ACDEF6717727B6D00CABF57 /* AFHTTPClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFHTTPClient.m; sourceTree = "<group>"; };
+		7ACDEF6817727B6D00CABF57 /* AFHTTPRequestOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFHTTPRequestOperation.h; sourceTree = "<group>"; };
+		7ACDEF6917727B6D00CABF57 /* AFHTTPRequestOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFHTTPRequestOperation.m; sourceTree = "<group>"; };
+		7ACDEF6A17727B6D00CABF57 /* AFImageRequestOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFImageRequestOperation.h; sourceTree = "<group>"; };
+		7ACDEF6B17727B6D00CABF57 /* AFImageRequestOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFImageRequestOperation.m; sourceTree = "<group>"; };
+		7ACDEF6C17727B6D00CABF57 /* AFJSONRequestOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFJSONRequestOperation.h; sourceTree = "<group>"; };
+		7ACDEF6D17727B6D00CABF57 /* AFJSONRequestOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFJSONRequestOperation.m; sourceTree = "<group>"; };
+		7ACDEF6E17727B6D00CABF57 /* AFNetworkActivityIndicatorManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworkActivityIndicatorManager.h; sourceTree = "<group>"; };
+		7ACDEF6F17727B6D00CABF57 /* AFNetworkActivityIndicatorManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFNetworkActivityIndicatorManager.m; sourceTree = "<group>"; };
+		7ACDEF7017727B6D00CABF57 /* AFNetworking.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworking.h; sourceTree = "<group>"; };
+		7ACDEF7117727B6D00CABF57 /* AFPropertyListRequestOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFPropertyListRequestOperation.h; sourceTree = "<group>"; };
+		7ACDEF7217727B6D00CABF57 /* AFPropertyListRequestOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFPropertyListRequestOperation.m; sourceTree = "<group>"; };
+		7ACDEF7317727B6D00CABF57 /* AFURLConnectionOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFURLConnectionOperation.h; sourceTree = "<group>"; };
+		7ACDEF7417727B6D00CABF57 /* AFURLConnectionOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFURLConnectionOperation.m; sourceTree = "<group>"; };
+		7ACDEF7517727B6D00CABF57 /* AFXMLRequestOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFXMLRequestOperation.h; sourceTree = "<group>"; };
+		7ACDEF7617727B6D00CABF57 /* AFXMLRequestOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFXMLRequestOperation.m; sourceTree = "<group>"; };
+		7ACDEF7717727B6D00CABF57 /* UIImageView+AFNetworking.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImageView+AFNetworking.h"; sourceTree = "<group>"; };
+		7ACDEF7817727B6D00CABF57 /* UIImageView+AFNetworking.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImageView+AFNetworking.m"; sourceTree = "<group>"; };
+		7ACDEF82177280B500CABF57 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = System/Library/Frameworks/AdSupport.framework; sourceTree = SDKROOT; };
+		7AF53F531773504600365DF9 /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
+		7AF53F55177350AF00365DF9 /* logo114-01.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "logo114-01.png"; sourceTree = "<group>"; };
+		7AF53F591773512600365DF9 /* mlogo.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = mlogo.jpg; sourceTree = "<group>"; };
+		7AF53F5B177353F900365DF9 /* logo-01.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "logo-01.png"; sourceTree = "<group>"; };
+		7AF53F5D1773551700365DF9 /* logo2-01.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "logo2-01.png"; sourceTree = "<group>"; };
+		7AF53F611773565F00365DF9 /* logo5757-01.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "logo5757-01.png"; sourceTree = "<group>"; };
+		7AF53F631773568300365DF9 /* logo5757-01.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "logo5757-01.png"; path = "../logo5757-01.png"; sourceTree = "<group>"; };
+		7AF53F68177363C300365DF9 /* LocationManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocationManager.h; sourceTree = "<group>"; };
+		7AF53F69177363CB00365DF9 /* LocationManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocationManager.m; sourceTree = "<group>"; };
+		7AF53F771774DF0E00365DF9 /* help.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = help.png; sourceTree = "<group>"; };
+		7AF53F791774DF4800365DF9 /* Scanner.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Scanner.png; sourceTree = "<group>"; };
+		7AF53F7B1774DF5400365DF9 /* connect-alt-2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "connect-alt-2.png"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7ACDEF2B1772418F00CABF57 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7ACDEF83177280B500CABF57 /* AdSupport.framework in Frameworks */,
+				7ACDEF5E177258D500CABF57 /* CoreMotion.framework in Frameworks */,
+				7ACDEF5C177257C100CABF57 /* SystemConfiguration.framework in Frameworks */,
+				7ACDEF5A1772460800CABF57 /* CoreLocation.framework in Frameworks */,
+				7ACDEF321772419000CABF57 /* UIKit.framework in Frameworks */,
+				7ACDEF341772419000CABF57 /* Foundation.framework in Frameworks */,
+				7ACDEF361772419000CABF57 /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		7ACDEF251772418F00CABF57 = {
+			isa = PBXGroup;
+			children = (
+				7ACDEF371772419000CABF57 /* charging */,
+				7ACDEF301772418F00CABF57 /* Frameworks */,
+				7ACDEF2F1772418F00CABF57 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7ACDEF2F1772418F00CABF57 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7ACDEF2E1772418F00CABF57 /* Grid Charger.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		7ACDEF301772418F00CABF57 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				7ACDEF82177280B500CABF57 /* AdSupport.framework */,
+				7ACDEF5D177258D500CABF57 /* CoreMotion.framework */,
+				7ACDEF5B177257C100CABF57 /* SystemConfiguration.framework */,
+				7ACDEF591772460800CABF57 /* CoreLocation.framework */,
+				7ACDEF311772418F00CABF57 /* UIKit.framework */,
+				7ACDEF331772419000CABF57 /* Foundation.framework */,
+				7ACDEF351772419000CABF57 /* CoreGraphics.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		7ACDEF371772419000CABF57 /* charging */ = {
+			isa = PBXGroup;
+			children = (
+				7ACDEF6517727B6D00CABF57 /* AFNetworking */,
+				7ACDEF401772419000CABF57 /* chargingAppDelegate.h */,
+				7ACDEF411772419000CABF57 /* chargingAppDelegate.m */,
+				7ACDEF491772419000CABF57 /* MainStoryboard_iPhone.storyboard */,
+				7ACDEF4C1772419000CABF57 /* MainStoryboard_iPad.storyboard */,
+				7AF53F69177363CB00365DF9 /* LocationManager.m */,
+				7AF53F68177363C300365DF9 /* LocationManager.h */,
+				7ACDEF4F1772419000CABF57 /* chargingViewController.h */,
+				7ACDEF501772419000CABF57 /* chargingViewController.m */,
+				7ACDEF381772419000CABF57 /* Supporting Files */,
+			);
+			path = charging;
+			sourceTree = "<group>";
+		};
+		7ACDEF381772419000CABF57 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				7AF53F791774DF4800365DF9 /* Scanner.png */,
+				7AF53F631773568300365DF9 /* logo5757-01.png */,
+				7AF53F771774DF0E00365DF9 /* help.png */,
+				7AF53F611773565F00365DF9 /* logo5757-01.png */,
+				7AF53F5D1773551700365DF9 /* logo2-01.png */,
+				7AF53F5B177353F900365DF9 /* logo-01.png */,
+				7AF53F591773512600365DF9 /* mlogo.jpg */,
+				7AF53F55177350AF00365DF9 /* logo114-01.png */,
+				7AF53F7B1774DF5400365DF9 /* connect-alt-2.png */,
+				7AF53F531773504600365DF9 /* logo.png */,
+				7ACDEF391772419000CABF57 /* Grid Charger-Info.plist */,
+				7ACDEF3A1772419000CABF57 /* InfoPlist.strings */,
+				7ACDEF3D1772419000CABF57 /* main.m */,
+				7ACDEF3F1772419000CABF57 /* Grid Charger-Prefix.pch */,
+				7ACDEF431772419000CABF57 /* Default.png */,
+				7ACDEF451772419000CABF57 /* Default@2x.png */,
+				7ACDEF471772419000CABF57 /* Default-568h@2x.png */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		7ACDEF6517727B6D00CABF57 /* AFNetworking */ = {
+			isa = PBXGroup;
+			children = (
+				7ACDEF6617727B6D00CABF57 /* AFHTTPClient.h */,
+				7ACDEF6717727B6D00CABF57 /* AFHTTPClient.m */,
+				7ACDEF6817727B6D00CABF57 /* AFHTTPRequestOperation.h */,
+				7ACDEF6917727B6D00CABF57 /* AFHTTPRequestOperation.m */,
+				7ACDEF6A17727B6D00CABF57 /* AFImageRequestOperation.h */,
+				7ACDEF6B17727B6D00CABF57 /* AFImageRequestOperation.m */,
+				7ACDEF6C17727B6D00CABF57 /* AFJSONRequestOperation.h */,
+				7ACDEF6D17727B6D00CABF57 /* AFJSONRequestOperation.m */,
+				7ACDEF6E17727B6D00CABF57 /* AFNetworkActivityIndicatorManager.h */,
+				7ACDEF6F17727B6D00CABF57 /* AFNetworkActivityIndicatorManager.m */,
+				7ACDEF7017727B6D00CABF57 /* AFNetworking.h */,
+				7ACDEF7117727B6D00CABF57 /* AFPropertyListRequestOperation.h */,
+				7ACDEF7217727B6D00CABF57 /* AFPropertyListRequestOperation.m */,
+				7ACDEF7317727B6D00CABF57 /* AFURLConnectionOperation.h */,
+				7ACDEF7417727B6D00CABF57 /* AFURLConnectionOperation.m */,
+				7ACDEF7517727B6D00CABF57 /* AFXMLRequestOperation.h */,
+				7ACDEF7617727B6D00CABF57 /* AFXMLRequestOperation.m */,
+				7ACDEF7717727B6D00CABF57 /* UIImageView+AFNetworking.h */,
+				7ACDEF7817727B6D00CABF57 /* UIImageView+AFNetworking.m */,
+			);
+			path = AFNetworking;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7ACDEF2D1772418F00CABF57 /* Grid Charger */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7ACDEF541772419000CABF57 /* Build configuration list for PBXNativeTarget "Grid Charger" */;
+			buildPhases = (
+				7ACDEF2A1772418F00CABF57 /* Sources */,
+				7ACDEF2B1772418F00CABF57 /* Frameworks */,
+				7ACDEF2C1772418F00CABF57 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Grid Charger";
+			productName = charging;
+			productReference = 7ACDEF2E1772418F00CABF57 /* Grid Charger.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7ACDEF261772418F00CABF57 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				CLASSPREFIX = charging;
+				LastUpgradeCheck = 0460;
+				ORGANIZATIONNAME = "Noah Klugman";
+			};
+			buildConfigurationList = 7ACDEF291772418F00CABF57 /* Build configuration list for PBXProject "Grid Charger" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 7ACDEF251772418F00CABF57;
+			productRefGroup = 7ACDEF2F1772418F00CABF57 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				7ACDEF2D1772418F00CABF57 /* Grid Charger */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7ACDEF2C1772418F00CABF57 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7ACDEF3C1772419000CABF57 /* InfoPlist.strings in Resources */,
+				7ACDEF441772419000CABF57 /* Default.png in Resources */,
+				7ACDEF461772419000CABF57 /* Default@2x.png in Resources */,
+				7ACDEF481772419000CABF57 /* Default-568h@2x.png in Resources */,
+				7ACDEF4B1772419000CABF57 /* MainStoryboard_iPhone.storyboard in Resources */,
+				7ACDEF4E1772419000CABF57 /* MainStoryboard_iPad.storyboard in Resources */,
+				7AF53F541773504600365DF9 /* logo.png in Resources */,
+				7AF53F5A1773512600365DF9 /* mlogo.jpg in Resources */,
+				7AF53F5C177353F900365DF9 /* logo-01.png in Resources */,
+				7AF53F5E1773551700365DF9 /* logo2-01.png in Resources */,
+				7AF53F621773565F00365DF9 /* logo5757-01.png in Resources */,
+				7AF53F641773568300365DF9 /* logo5757-01.png in Resources */,
+				7AF53F781774DF0E00365DF9 /* help.png in Resources */,
+				7AF53F7A1774DF4800365DF9 /* Scanner.png in Resources */,
+				7AF53F7C1774DF5400365DF9 /* connect-alt-2.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7ACDEF2A1772418F00CABF57 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7ACDEF3E1772419000CABF57 /* main.m in Sources */,
+				7ACDEF421772419000CABF57 /* chargingAppDelegate.m in Sources */,
+				7ACDEF511772419000CABF57 /* chargingViewController.m in Sources */,
+				7ACDEF7917727B6D00CABF57 /* AFHTTPClient.m in Sources */,
+				7ACDEF7A17727B6D00CABF57 /* AFHTTPRequestOperation.m in Sources */,
+				7ACDEF7B17727B6D00CABF57 /* AFImageRequestOperation.m in Sources */,
+				7ACDEF7C17727B6D00CABF57 /* AFJSONRequestOperation.m in Sources */,
+				7ACDEF7D17727B6D00CABF57 /* AFNetworkActivityIndicatorManager.m in Sources */,
+				7ACDEF7E17727B6D00CABF57 /* AFPropertyListRequestOperation.m in Sources */,
+				7ACDEF7F17727B6D00CABF57 /* AFURLConnectionOperation.m in Sources */,
+				7ACDEF8017727B6D00CABF57 /* AFXMLRequestOperation.m in Sources */,
+				7ACDEF8117727B6D00CABF57 /* UIImageView+AFNetworking.m in Sources */,
+				7AF53F6A177363CB00365DF9 /* LocationManager.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		7ACDEF3A1772419000CABF57 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				7ACDEF3B1772419000CABF57 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		7ACDEF491772419000CABF57 /* MainStoryboard_iPhone.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				7ACDEF4A1772419000CABF57 /* en */,
+			);
+			name = MainStoryboard_iPhone.storyboard;
+			sourceTree = "<group>";
+		};
+		7ACDEF4C1772419000CABF57 /* MainStoryboard_iPad.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				7ACDEF4D1772419000CABF57 /* en */,
+			);
+			name = MainStoryboard_iPad.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		7ACDEF521772419000CABF57 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7ACDEF531772419000CABF57 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		7ACDEF551772419000CABF57 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "charging/Grid Charger-Prefix.pch";
+				INFOPLIST_FILE = "charging/Grid Charger-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		7ACDEF561772419000CABF57 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "charging/Grid Charger-Prefix.pch";
+				INFOPLIST_FILE = "charging/Grid Charger-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7ACDEF291772418F00CABF57 /* Build configuration list for PBXProject "Grid Charger" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7ACDEF521772419000CABF57 /* Debug */,
+				7ACDEF531772419000CABF57 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7ACDEF541772419000CABF57 /* Build configuration list for PBXNativeTarget "Grid Charger" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7ACDEF551772419000CABF57 /* Debug */,
+				7ACDEF561772419000CABF57 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 7ACDEF261772418F00CABF57 /* Project object */;
+}
