@@ -19,6 +19,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -29,6 +30,7 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.provider.Settings.Secure;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -198,7 +200,10 @@ public class GridWatchService extends Service implements SensorEventListener {
 				
 				if (!moved) {
 					Log.d("GridWatchService", "no movement found, should trigger");
-					new PostAlertTask().execute();
+					SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+					String alertServer = settings.getString("alert_server",
+							getString(R.string.default_alert_server));
+					new PostAlertTask().execute(alertServer);
 				} else {
 					Log.w("GridWatchService", "now how'd we get here?");
 				}
@@ -208,10 +213,10 @@ public class GridWatchService extends Service implements SensorEventListener {
 	
 	private LinkedBlockingQueue<HttpPost> alertQ = new LinkedBlockingQueue<HttpPost>();
 	
-	private class PostAlertTask extends AsyncTask<Void, Void, Void> {
+	private class PostAlertTask extends AsyncTask<String, Void, Void> {
 
 		@Override
-		protected Void doInBackground(Void... arg0) {
+		protected Void doInBackground(String... args) {
 			Log.d("GridWatchService", "PostAlertTask start");
 			
 			double lat = -1, lon = -1;
@@ -231,7 +236,7 @@ public class GridWatchService extends Service implements SensorEventListener {
 			}
 			
 			HttpClient httpclient = new DefaultHttpClient();
-			HttpPost httppost = new HttpPost("http://requestb.in/1e58wrt1");
+			HttpPost httppost = new HttpPost(args[0]);
 			
 			try {
 				String phoneId = Secure.getString(getBaseContext().getContentResolver(), Secure.ANDROID_ID);
