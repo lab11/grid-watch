@@ -3,6 +3,7 @@ package edu.umich.eecs.gridwatch;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -25,6 +26,7 @@ import android.hardware.SensorManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.provider.Settings.Secure;
@@ -47,7 +49,20 @@ public class GridWatchService extends Service implements SensorEventListener {
 		}
 	};
 	
+	private BroadcastReceiver ConnectionListenerReceiver = new BroadcastReceiver() {
+	    @Override
+	    public void onReceive(Context context, Intent intent) {
+	        ConnectivityManager cm = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
+	        if (cm == null)
+	            return;
+	        if (cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnected()) {
+	            new ProcessAlertQTask().execute();
+	        }
+	    }
+	};
+	
 	private void updateIntent() {
+		mLocalIntent.putExtra("pending", alertQ.size());
 		Log.d("GridWatchService", "Send Update UI Intent");
 		LocalBroadcastManager.getInstance(this).sendBroadcast(mLocalIntent);
 	}
@@ -88,6 +103,10 @@ public class GridWatchService extends Service implements SensorEventListener {
 	@Override
 	public void onCreate() {
 		mLocalIntent = new Intent("GridWatch-update-event");
+		
+		IntentFilter cfilter = new IntentFilter();
+		cfilter.addAction(android.net.ConnectivityManager.CONNECTIVITY_ACTION);
+		this.registerReceiver(ConnectionListenerReceiver, cfilter);
 		
 		IntentFilter ifilter = new IntentFilter();
 		ifilter.addAction(Intent.ACTION_POWER_CONNECTED);
@@ -187,6 +206,8 @@ public class GridWatchService extends Service implements SensorEventListener {
 		}
 	}
 	
+	private LinkedBlockingQueue<HttpPost> alertQ = new LinkedBlockingQueue<HttpPost>();
+	
 	private class PostAlertTask extends AsyncTask<Void, Void, Void> {
 
 		@Override
@@ -236,8 +257,54 @@ public class GridWatchService extends Service implements SensorEventListener {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
+				//e.printStackTrace();
+				Log.d("GridWatchService", "IO Exception, queuing for later delivery");
+				if (false == alertQ.offer(httppost)) {
+					Log.e("GridWatchService", "Failed to add element to alertQ?");
+				}
+			}
+			
+			updateIntent();
+			return null;
+		}
+	}
+	
+	private class ProcessAlertQTask extends AsyncTask<Void, Void, Void> {
+
+		@Override
+		protected Void doInBackground(Void... arg0) {
+			Log.d("GridWatchService", "ProcessAlertQTask Start");
+			
+			HttpClient httpclient = new DefaultHttpClient();
+			HttpPost post = null;
+			
+			try {
+				while (alertQ.size() > 0) {
+					post = alertQ.poll();
+					if (post == null) {
+						Log.w("GridWatchService", "Unexpected empty queue?");
+						break;
+					}
+					HttpResponse response = httpclient.execute(post);
+					Log.d("GridWatchService", "POST response: " + response);
+					
+					mLocalIntent.putExtra("resp", "send success");
+				}
+			} catch (ClientProtocolException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (IOException e) {
+				//e.printStackTrace();
+				Log.d("GridWatchService", "IO Exception, queuing for later delivery");
+				mLocalIntent.putExtra("resp", "send failed");
+				if (post == null) {
+					Log.w("GridWatchService", "Caught post is null?");
+				} else if (false == alertQ.offer(post)) {
+					// Worth noting the lack of offerFirst will put elements in
+					// the alertQ out of order w.r.t. when they first fired, but
+					// the server will re-order based on timestamp anyway
+					Log.e("GridWatchService", "Failed to add element to alertQ?");
+				}
 			}
 			
 			updateIntent();

@@ -28,6 +28,22 @@
         android:gravity="center"
         android:text="Service is active" />
 	
+	<LinearLayout
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:orientation="horizontal" >
+	    
+	    <TextView
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="Number of Pending Alerts: " />
+	    
+	    <TextView
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:id="@+id/pending_count" />
+	</LinearLayout>
+	
 	<TextView
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"

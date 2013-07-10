@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 public class GridWatch extends Activity {
 	TextView mStatus;
+	TextView mPendingCount;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -19,6 +20,7 @@ public class GridWatch extends Activity {
 		setContentView(R.layout.activity_grid_watch);
 		
 		mStatus = (TextView) findViewById(R.id.status_text);
+		mPendingCount = (TextView) findViewById(R.id.pending_count);
 	}
 	
 	@Override
@@ -49,6 +51,7 @@ public class GridWatch extends Activity {
 	private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
+			mPendingCount.setText(Integer.toString(intent.getIntExtra("pending", 0)));
 			if (intent.hasExtra("id")) {
 				mStatus.setText("Most recent report:\n"
 						+ "id: " + intent.getStringExtra("id") + "\n"
