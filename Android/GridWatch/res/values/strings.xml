@@ -7,7 +7,7 @@
     <string name="title_text">Grid Watch</string>
     <string name="service_active">Service is active</string>
     <string name="num_pend_alerts">Number of Pending Alerts: </string>
-    <string name="default_alert_server">http://requestb.in/1e58wrt1</string>
+    <string name="default_alert_server">http://inductor.eecs.umich.edu:8081/HthZRrHnlC</string>
     <string name="set_alert_server">Commit New Alert Server</string>
     <string name="reset_alert_to_default">Reset Alert Server To Default</string>
     

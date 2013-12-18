@@ -1,11 +1,13 @@
 package edu.umich.eecs.gridwatch;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
@@ -43,7 +45,7 @@ public class GridWatch extends Activity {
 		Intent intent = new Intent(this, GridWatchService.class);
 		startService(intent);
 		
-		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, 
+		LocalBroadcastManager.getInstance(this).registerReceiver(mServiceMessageReceiver, 
 				new IntentFilter("GridWatch-update-event"));
 	}
 	
@@ -51,7 +53,7 @@ public class GridWatch extends Activity {
 	protected void onPause() {
 		super.onPause();
 		
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(mServiceMessageReceiver);
 	}
 
 	@Override
@@ -61,26 +63,29 @@ public class GridWatch extends Activity {
 		return true;
 	}
 	
-	private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+	// This handles the callbacks from the service class.
+	private BroadcastReceiver mServiceMessageReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			mPendingCount.setText(" "+Integer.toString(intent.getIntExtra("pending", 0)));
-			if (intent.hasExtra("id")) {
-				mStatus.setText("Most recent report:\n"
-						+ "id: " + intent.getStringExtra("id") + "\n"
-						+ "time: " + intent.getStringExtra("time") + "\n"
-						+ "lat: " + intent.getStringExtra("lat") + "\n"
-						+ "lon: " + intent.getStringExtra("lon") + "\n"
-						+ "\n"
-						+ "resp: " + intent.getStringExtra("resp")
-						);
+			mPendingCount.setText(" "+Integer.toString(intent.getIntExtra("pending_queue_len", 0)));
+			if (intent.hasExtra("event_info")) {
+				String status = "Most recent report:\n";
+				String event_info = intent.getStringExtra("event_info");
+				String[] info_items = event_info.split("\\|\\|");
+				for (String item : info_items) {
+					String[] kv = item.split("\\|");
+					status += kv[0] + ": " + kv[1] + "\n";
+				}
+				status += "\n";
+				status += "Transmission: " + intent.getStringExtra("event_transmission");
+				mStatus.setText(status);
 			} else {
 				mStatus.setText("No incidents reported since startup");
 			}
 		}
 	};
 	
-	public void setAlertServer(View view) {
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD) public void setAlertServer(View view) {
 		String alertServer = mAlertServerEditText.getText().toString();
 		if (!URLUtil.isValidUrl(alertServer)) {
 			Toast.makeText(this, "Invalid URL", Toast.LENGTH_SHORT).show();
@@ -97,7 +102,7 @@ public class GridWatch extends Activity {
 		Toast.makeText(this, "Alert Server Updated", Toast.LENGTH_SHORT).show();
 	}
 	
-	public void resetAlertServer(View view) {
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD) public void resetAlertServer(View view) {
 		String alertServer = getString(R.string.default_alert_server);
 		
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
