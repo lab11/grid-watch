@@ -1,0 +1,14 @@
+HTTP POST String:
+
+KEY         TYPE    VALUE
+--------------------------------------------------------------------------
+id          str     unique id for the phone
+time        int     timestamp of power change event in milliseconds
+latitude    float   GPS latitude coordinate
+longitude   float   GPS longitude coordinate
+phone_type  str     manufacturer and model of phone
+event_type  enum    one of: "unplugged_still", "unplugged_moved"
+os          enum    one of: "android", "ios", "windows phone"
+os_version  str     version string of the OS (ex: "4.2.2")
+network     enum    type of internet connection at the power change event.
+                    one of: "mobile", "wifi", "disconnected", "unknown"
