@@ -50,6 +50,7 @@ public class GridWatchService extends Service implements SensorEventListener {
 	private LocationManager mLocationManager;
 	
 	private boolean mDockCar = false;
+	private long mPowerDisconnectTimestamp;
 	
 	private LinkedBlockingQueue<HttpPost> mAlertQ = new LinkedBlockingQueue<HttpPost>();
 	
@@ -151,6 +152,8 @@ public class GridWatchService extends Service implements SensorEventListener {
 	private void onPowerDisconnected() {
 		Log.d("GridWatchService", "onPowerDisconnected called");
 		
+		mPowerDisconnectTimestamp = System.currentTimeMillis();
+		
 		mSensorManager.registerListener(this, mAccel, SensorManager.SENSOR_DELAY_NORMAL);
 	}
 	
@@ -232,10 +235,9 @@ public class GridWatchService extends Service implements SensorEventListener {
 		// Arguments:
 		//   0: event type
 		//   1: POST url
-		//   2: timestamp in milliseconds as a string of when the event occurred
-		//   3: GPS latitude
-		//   4: GPS longitude
-		//   5: network connection type (unknown, disconnected, wifi, mobile, other)
+		//   2: GPS latitude
+		//   3: GPS longitude
+		//   4: network connection type (unknown, disconnected, wifi, mobile, other)
 		@Override
 		protected Void doInBackground(String... args) {
 			Log.d("GridWatchService", "PostAlertTask start");
@@ -252,14 +254,14 @@ public class GridWatchService extends Service implements SensorEventListener {
 				
 				List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
 				nameValuePairs.add(new BasicNameValuePair("id",         phoneId));
-				nameValuePairs.add(new BasicNameValuePair("time",       args[2]));
-				nameValuePairs.add(new BasicNameValuePair("latitude",   args[3]));
-				nameValuePairs.add(new BasicNameValuePair("longitude",  args[4]));
+				nameValuePairs.add(new BasicNameValuePair("time",       String.valueOf(mPowerDisconnectTimestamp)));
+				nameValuePairs.add(new BasicNameValuePair("latitude",   args[2]));
+				nameValuePairs.add(new BasicNameValuePair("longitude",  args[3]));
 				nameValuePairs.add(new BasicNameValuePair("phone_type", phoneType));
 				nameValuePairs.add(new BasicNameValuePair("event_type", args[0]));
 				nameValuePairs.add(new BasicNameValuePair("os",         "android"));
 				nameValuePairs.add(new BasicNameValuePair("os_version", osVersion));
-				nameValuePairs.add(new BasicNameValuePair("network",    args[5]));
+				nameValuePairs.add(new BasicNameValuePair("network",    args[4]));
 				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 				
 				// Combine all of the keys into a single string to send to the UI thread
@@ -336,10 +338,7 @@ public class GridWatchService extends Service implements SensorEventListener {
 	}
 	
 	// Function to call to notify the server than an event happened on this phone.
-	private void postEvent (String event_type) {
-		// Get the current time
-		String now = String.valueOf(System.currentTimeMillis());
-		
+	private void postEvent (String event_type) {		
 		// Get the url of the server to post to
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		String alertServerURL = settings.getString("alert_server",
@@ -361,9 +360,7 @@ public class GridWatchService extends Service implements SensorEventListener {
 		} else {
 			Log.d("GridWatchService", "Couldn't get a location provider");
 		}
-		
-		Log.d("GridWatchService", "here");
-		
+				
 		// Determine if we are on wifi, mobile, or have no connection
 		String connection_type = "unknown";
 		ConnectivityManager cm = (ConnectivityManager) getBaseContext().getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -385,7 +382,7 @@ public class GridWatchService extends Service implements SensorEventListener {
 		}		
 		
 		// Create the task to run in the background at some point in the future
-		new PostAlertTask().execute(event_type, alertServerURL, now, String.valueOf(lat), String.valueOf(lon), connection_type);
+		new PostAlertTask().execute(event_type, alertServerURL, String.valueOf(lat), String.valueOf(lon), connection_type);
 	}
 	
 	// Returns the phone type for adding meta data to the transmitted packets
