@@ -372,7 +372,7 @@ public class GridWatchService extends Service implements SensorEventListener {
 			if (active_net_info != null) {
 				if (active_net_info.isConnected()) {
 					if (active_net_info.getType() == ConnectivityManager.TYPE_WIFI) {
-						connection_type = "wfi";
+						connection_type = "wifi";
 					} else if (active_net_info.getType() == ConnectivityManager.TYPE_MOBILE) {
 						connection_type = "mobile";
 					} else {

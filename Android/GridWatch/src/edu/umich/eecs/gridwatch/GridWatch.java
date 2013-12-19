@@ -68,6 +68,9 @@ public class GridWatch extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			mPendingCount.setText(" "+Integer.toString(intent.getIntExtra("pending_queue_len", 0)));
+			
+			// Display the event info on the home screen of the app
+			// event_info looks like: key|value||key|value
 			if (intent.hasExtra("event_info")) {
 				String status = "Most recent report:\n";
 				String event_info = intent.getStringExtra("event_info");
