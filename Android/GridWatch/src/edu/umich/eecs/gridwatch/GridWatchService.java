@@ -147,6 +147,8 @@ public class GridWatchService extends Service implements SensorEventListener {
 		
 		mSensorManager.unregisterListener(this);
 		mAccelHistory = null;
+		
+		postEvent("plugged");
 	}
 	
 	private void onPowerDisconnected() {
