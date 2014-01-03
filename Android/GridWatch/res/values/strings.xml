@@ -33,5 +33,7 @@
     <string name="accel_none">No Accelerometer Present</string>
     <string name="accel_moved">Device Moved!</string>
     <string name="accel_static">Device has not moved.</string>
+    <string name="description">Use GridWatch to monitor the power grid.</string>
+    <string name="no_messages">No incidents reported since startup.</string>
 
 </resources>
