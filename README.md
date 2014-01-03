@@ -15,4 +15,8 @@ events are aggregated to detect a power outage.
 Applications
 ------------
 
+[
+![android_screenshot](https://github.com/lab11/grid-watch/raw/master/media/android_v0.1_screenshot_sm.png)
+](https://github.com/lab11/grid-watch/raw/master/media/android_v0.1_screenshot.png)
+
 The `.apk` for Android is located in the `/built` folder.
