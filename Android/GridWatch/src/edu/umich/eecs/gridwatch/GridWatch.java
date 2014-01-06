@@ -9,12 +9,24 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class GridWatch extends Activity {
 	TextView mStatus;
+	
+	// This is the entire log view that we create so we can add log
+	// messages to it. Whenever the log needs to be displayed, call
+	// setContentView(mLogView);
+	View mLogView = null;
+	
+	
 	//TextView mPendingCount;
 	//EditText mAlertServerEditText;
 
@@ -35,6 +47,13 @@ public class GridWatch extends Activity {
 		//mPendingCount = (TextView) findViewById(R.id.pending_count);
 		//mAlertServerEditText = (EditText) findViewById(R.id.alert_server);
 		//mAlertServerEditText.setHint(alertServer);
+		
+		// "Inflate" the log view so that we can append
+		// log messages to it. Also save a reference to it
+		// so we can display this copy of the log.
+		LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		mLogView = inflater.inflate(R.layout.log, null);
+	
 	}
 	
 	@Override
@@ -67,6 +86,18 @@ public class GridWatch extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			//mPendingCount.setText(" "+Integer.toString(intent.getIntExtra("pending_queue_len", 0)));
+			
+			if (mLogView != null) {
+				LinearLayout log_linear_layout = (LinearLayout) mLogView.findViewById(R.id.log_linear);
+				View ruler = new View(context);
+				ruler.setBackgroundColor(0xFF00FF00);
+				log_linear_layout.addView(ruler, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 2));
+				
+				TextView tv = new TextView(context);
+				tv.setText("dummy");
+				log_linear_layout.addView(tv);
+				Log.d("GridWatchService", "added ruler");
+			}
 			
 			// Display the event info on the home screen of the app
 			// event_info looks like: key|value||key|value
@@ -104,7 +135,7 @@ public class GridWatch extends Activity {
 			// Handle when the log item is selected from the menu
 			case R.id.action_log:
 				// Display the log layout and put the back button in the header
-				setContentView(R.layout.log);
+				setContentView(mLogView);
 				getActionBar().setDisplayHomeAsUpEnabled(true);
 				return true;
 				
