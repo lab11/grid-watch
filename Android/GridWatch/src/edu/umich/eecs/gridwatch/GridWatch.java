@@ -24,8 +24,8 @@ public class GridWatch extends Activity {
 	private final static String INTENT_EXTRA_EVENT_INFO = "event_info";
 	private final static String INTENT_EXTRA_EVENT_TIME = "event_time";
 
-
-	TextView mStatus;
+	// This is the main page view
+	View mMainView = null;
 
 	// This is the entire log view that we create so we can add log
 	// messages to it. Whenever the log needs to be displayed, call
@@ -40,8 +40,11 @@ public class GridWatch extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
 		// Display the main homepage view and hide the back button
-		setContentView(R.layout.activity_grid_watch);
+		mMainView = inflater.inflate(R.layout.activity_grid_watch, null);
+		setContentView(mMainView);
 		getActionBar().setDisplayHomeAsUpEnabled(false);
 
 
@@ -49,7 +52,7 @@ public class GridWatch extends Activity {
 		//String alertServer = settings.getString("alert_server",
 		//		getString(R.string.default_alert_server));
 
-		mStatus = (TextView) findViewById(R.id.txt_status);
+		//mStatus = (TextView) findViewById(R.id.txt_status);
 		//mPendingCount = (TextView) findViewById(R.id.pending_count);
 		//mAlertServerEditText = (EditText) findViewById(R.id.alert_server);
 		//mAlertServerEditText.setHint(alertServer);
@@ -57,7 +60,7 @@ public class GridWatch extends Activity {
 		// "Inflate" the log view so that we can append
 		// log messages to it. Also save a reference to it
 		// so we can display this copy of the log.
-		LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
 		mLogView = inflater.inflate(R.layout.log, null);
 
 	}
@@ -120,7 +123,7 @@ public class GridWatch extends Activity {
 
 			// Update the front display
 			if (intent.getStringExtra(INTENT_EXTRA_EVENT_TYPE) == "event_post") {
-				mStatus.setText(intent.getStringExtra(INTENT_EXTRA_EVENT_INFO));
+				((TextView) mMainView.findViewById(R.id.txt_status)).setText(intent.getStringExtra(INTENT_EXTRA_EVENT_INFO));
 			}
 /*
 
@@ -167,11 +170,11 @@ public class GridWatch extends Activity {
 			// Handle when the back button is pressed
 			case android.R.id.home:
 				// Display the homepage and removed the back icon in the header
-				setContentView(R.layout.activity_grid_watch);
+				setContentView(mMainView);
 				getActionBar().setDisplayHomeAsUpEnabled(false);
 				return true;
-		    default:
-		    	return super.onOptionsItemSelected(item);
+			default:
+				return super.onOptionsItemSelected(item);
 		}
 	}
 
