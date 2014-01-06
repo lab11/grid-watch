@@ -1,6 +1,14 @@
 package edu.umich.eecs.gridwatch;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+
 import android.util.FloatMath;
+import android.util.Log;
 
 public class GridWatchEvent {
 
@@ -8,11 +16,11 @@ public class GridWatchEvent {
 	private long mTimestamp;
 	private boolean mMoved = false;
 
-	private final static float ACCEL_MAG_THRESHOLD = 3.0f;
+	private final static float ACCEL_MAG_THRESHOLD = 0.3f;
 	private final static long ACCEL_DURATION_NANOSECONDS = 5000000000l;
 	private long mAccelFirstTime = 0l;
 	private float mAccelMagLast = 0.0f;
-	private float mAccelMag = 0.0f;
+	//private float mAccelMag = 0.0f;
 	private boolean mAccelFinished = false;
 
 	public GridWatchEvent (GridWatchEventType eventType) {
@@ -48,11 +56,17 @@ public class GridWatchEvent {
 		// Compare this sample to the previous and see if the device
 		// has moved.
 		float accelMagCurrent = FloatMath.sqrt(x*x + y*y + z*z);
-		float delta = accelMagCurrent - mAccelMagLast;
+		if (mAccelMagLast == 0.0f) {
+			mAccelMagLast = accelMagCurrent;
+			return false;
+		}
+		float delta = Math.abs(accelMagCurrent - mAccelMagLast);
 		mAccelMagLast = accelMagCurrent;
-		mAccelMag = (mAccelMag * 0.9f) + delta;
+		//mAccelMag = (mAccelMag * 0.9f) + delta;
 
-		if (mAccelMag > ACCEL_MAG_THRESHOLD) {
+		Log.d("GridWatchService", "accel mag: " + delta);
+
+		if (delta > ACCEL_MAG_THRESHOLD) {
 			// We detected movement, don't need any more samples
 			mMoved = true;
 			mAccelFinished = true;
@@ -76,11 +90,27 @@ public class GridWatchEvent {
 	}
 
 	public String getEventType () {
-		return String.valueOf(mEventType).toLowerCase();
+		return String.valueOf(mEventType).toLowerCase(Locale.US);
 	}
 
 	public long getTimestampMilli () {
 		return mTimestamp;
+	}
+
+	// Get extra values we should send to the server, for example
+	// whether or not the device moved when it was unplugged
+	public List<NameValuePair> getNameValuePairs () {
+		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(15);
+
+		switch (mEventType) {
+		case UNPLUGGED:
+			nameValuePairs.add(new BasicNameValuePair("moved", String.valueOf(mMoved)));
+			break;
+		case PLUGGED:
+			break;
+		}
+
+		return nameValuePairs;
 	}
 
 	// Based on the event type determine if we need the service

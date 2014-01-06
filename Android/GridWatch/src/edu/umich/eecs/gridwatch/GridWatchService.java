@@ -2,7 +2,9 @@ package edu.umich.eecs.gridwatch;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -68,6 +70,8 @@ public class GridWatchService extends Service implements SensorEventListener {
 
 	private LinkedBlockingQueue<HttpPost> mAlertQ = new LinkedBlockingQueue<HttpPost>();
 
+	DateFormat mDateFormat = DateFormat.getDateTimeInstance();
+
 
 	@Override
 	public void onCreate() {
@@ -89,6 +93,11 @@ public class GridWatchService extends Service implements SensorEventListener {
 
 		Log.d("GridWatchService", "service started");
 		Toast.makeText(this, "GridWatch started", Toast.LENGTH_SHORT).show();
+
+		Intent lIntent = new Intent(INTENT_NAME);
+		lIntent.putExtra(INTENT_EXTRA_EVENT_TYPE, "created");
+		lIntent.putExtra(INTENT_EXTRA_EVENT_TIME, mDateFormat.format(new Date()));
+		broadcastIntent(lIntent);
 	}
 
 	@Override
@@ -99,6 +108,7 @@ public class GridWatchService extends Service implements SensorEventListener {
 		// Notify the main app that the service is ending
 		Intent lIntent = new Intent(INTENT_NAME);
 		lIntent.putExtra(INTENT_EXTRA_EVENT_TYPE, "destroy");
+		lIntent.putExtra(INTENT_EXTRA_EVENT_TIME, mDateFormat.format(new Date()));
 		broadcastIntent(lIntent);
 
 		// Unregister us from different events
@@ -120,6 +130,7 @@ public class GridWatchService extends Service implements SensorEventListener {
 	public void onStart(Intent intent, int startId) {
 		Intent lIntent = new Intent(INTENT_NAME);
 		lIntent.putExtra(INTENT_EXTRA_EVENT_TYPE, "started");
+		lIntent.putExtra(INTENT_EXTRA_EVENT_TIME, mDateFormat.format(new Date()));
 		broadcastIntent(lIntent);
 	}
 
@@ -127,6 +138,7 @@ public class GridWatchService extends Service implements SensorEventListener {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Intent lIntent = new Intent(INTENT_NAME);
 		lIntent.putExtra(INTENT_EXTRA_EVENT_TYPE, "started");
+		lIntent.putExtra(INTENT_EXTRA_EVENT_TIME, mDateFormat.format(new Date()));
 		broadcastIntent(lIntent);
 		// We want this service to continue running until it is explicitly
 		// stopped, so return sticky.
@@ -198,7 +210,7 @@ public class GridWatchService extends Service implements SensorEventListener {
 		Log.d("GridWatchService", "mDockCar set to " + mDockCar);
 	}
 
-	private boolean processEvents () {
+	private void processEvents () {
 		boolean done = true;
 
 		for (GridWatchEvent gwevent : mEvents) {
@@ -331,7 +343,6 @@ public class GridWatchService extends Service implements SensorEventListener {
 				}
 			}
 
-			updateIntent();
 			return null;
 		}
 	}
@@ -373,7 +384,6 @@ public class GridWatchService extends Service implements SensorEventListener {
 				}
 			}
 
-			updateIntent();
 			return null;
 		}
 	}
@@ -389,8 +399,6 @@ public class GridWatchService extends Service implements SensorEventListener {
 		// Get basics from the event
 		nameValuePairs.add(new BasicNameValuePair("time", String.valueOf(gwevent.getTimestampMilli())));
 		nameValuePairs.add(new BasicNameValuePair("event_type", gwevent.getEventType()));
-
-	//	httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
 		// Get the phone's current location
 		double lat = -1, lon = -1;
@@ -432,6 +440,9 @@ public class GridWatchService extends Service implements SensorEventListener {
 		}
 		nameValuePairs.add(new BasicNameValuePair("network", connection_type));
 
+		// Add any other key value pairs that the event needs to append
+		nameValuePairs.addAll(gwevent.getNameValuePairs());
+
 		// Fill in other values to send to the server
 		nameValuePairs.add(new BasicNameValuePair("id", Secure.getString(getBaseContext().getContentResolver(), Secure.ANDROID_ID)));
 		nameValuePairs.add(new BasicNameValuePair("phone_type", getDeviceName()));
@@ -452,7 +463,17 @@ public class GridWatchService extends Service implements SensorEventListener {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		Log.d("GridWatchService", httppost.getRequestLine().getUri());
+
+		Intent lIntent = new Intent(INTENT_NAME);
+		lIntent.putExtra(INTENT_EXTRA_EVENT_TYPE, "event_post");
+		String post_info = "";
+		for (NameValuePair item : nameValuePairs) {
+			post_info += item.getName() + "=" + item.getValue() + ", ";
+		}
+		lIntent.putExtra(INTENT_EXTRA_EVENT_INFO, post_info);
+		lIntent.putExtra(INTENT_EXTRA_EVENT_TIME, mDateFormat.format(new Date()));
+		broadcastIntent(lIntent);
+		Log.d("GridWatchService", post_info);
 
 		// Create the task to run in the background at some point in the future
 		new PostAlertTask().execute(httppost);
