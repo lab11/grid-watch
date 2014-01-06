@@ -1,14 +1,16 @@
 HTTP POST String:
 
-KEY         TYPE    VALUE
+KEY         TYPE    REQ  VALUE
 --------------------------------------------------------------------------
-id          str     unique id for the phone
-time        int     timestamp of power change event in milliseconds
-latitude    float   GPS latitude coordinate
-longitude   float   GPS longitude coordinate
-phone_type  str     manufacturer and model of phone
-event_type  enum    one of: "unplugged_still", "unplugged_moved", "plugged"
-os          enum    one of: "android", "ios", "windows phone"
-os_version  str     version string of the OS (ex: "4.2.2")
-network     enum    type of internet connection at the power change event.
-                    one of: "mobile", "wifi", "disconnected", "unknown"
+id          str     Y    unique id for the phone
+time        int     Y    timestamp of power change event in milliseconds
+latitude    float   Y    GPS latitude coordinate
+longitude   float   Y    GPS longitude coordinate
+phone_type  str     N    manufacturer and model of phone
+os          enum    Y    one of: "android", "ios", "windows phone"
+os_version  str     N    version string of the OS (ex: "4.2.2")
+app_version str     Y    version string of the app (ex: "0.2")
+network     enum    N    type of internet connection at the power change event.
+                         one of: "mobile", "wifi", "disconnected", "unknown"
+event_type  enum    Y    one of: "unplugged", "plugged"
+moved       bool    N    whether or not the device moved when the event occurred
