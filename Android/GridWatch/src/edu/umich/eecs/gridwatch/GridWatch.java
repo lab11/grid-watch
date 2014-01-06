@@ -1,13 +1,16 @@
 package edu.umich.eecs.gridwatch;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.TextView;
 
 public class GridWatch extends Activity {
@@ -15,10 +18,14 @@ public class GridWatch extends Activity {
 	//TextView mPendingCount;
 	//EditText mAlertServerEditText;
 
-	@Override
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB) @Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		// Display the main homepage view and hide the back button
 		setContentView(R.layout.activity_grid_watch);
+		getActionBar().setDisplayHomeAsUpEnabled(false);
+		
 		
 		//SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		//String alertServer = settings.getString("alert_server",
@@ -89,6 +96,29 @@ public class GridWatch extends Activity {
 			}
 		}
 	};
+	
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB) @Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle item selection
+		switch (item.getItemId()) {
+			// Handle when the log item is selected from the menu
+			case R.id.action_log:
+				// Display the log layout and put the back button in the header
+				setContentView(R.layout.log);
+				getActionBar().setDisplayHomeAsUpEnabled(true);
+				return true;
+				
+			// Handle when the back button is pressed
+			case android.R.id.home:
+				// Display the homepage and removed the back icon in the header
+				setContentView(R.layout.activity_grid_watch);
+				getActionBar().setDisplayHomeAsUpEnabled(false);
+				return true;
+		    default:
+		    	return super.onOptionsItemSelected(item);
+		}
+	}
+	
 	/*
 	@TargetApi(Build.VERSION_CODES.GINGERBREAD) public void setAlertServer(View view) {
 		String alertServer = mAlertServerEditText.getText().toString();
