@@ -54,22 +54,24 @@ public class GridWatchService extends Service implements SensorEventListener {
 	// List of all of the active events we are currently handling
 	private ArrayList<GridWatchEvent> mEvents = new ArrayList<GridWatchEvent>();
 
-
-	//private final static long ACCEL_DURATION_NANOSECONDS = 5000000000l;
+	// State for the accelerometer
 	private SensorManager mSensorManager;
 	private Sensor mAccel;
-	//private long mAccelFirstSampleTime;
-	//private float[][] mAccelHistory;
 
+	// Tool to get the location
 	private LocationManager mLocationManager;
 
 	private boolean mDockCar = false;
-	//private long mPowerDisconnectTimestamp;
 
+	// Timer that is fired to check if each event is ready to be sent to
+	// the server.
 	private Timer mEventProcessTimer = new Timer();
 
+	// Array of messages ready to send to the server that are waiting for
+	// Internet connectivity.
 	private LinkedBlockingQueue<HttpPost> mAlertQ = new LinkedBlockingQueue<HttpPost>();
 
+	// Tool for getting a pretty date
 	DateFormat mDateFormat = DateFormat.getDateTimeInstance();
 
 
@@ -185,11 +187,6 @@ public class GridWatchService extends Service implements SensorEventListener {
 		GridWatchEvent gwevent = new GridWatchEvent(GridWatchEventType.PLUGGED);
 		mEvents.add(gwevent);
 		processEvents();
-
-		//mSensorManager.unregisterListener(this);
-		//mAccelHistory = null;
-
-	//	postEvent("plugged");
 	}
 
 	private void onPowerDisconnected() {
@@ -236,11 +233,6 @@ public class GridWatchService extends Service implements SensorEventListener {
 				processEvents();
 			}
 		}, 1000);
-	}
-
-	@Override
-	public final void onAccuracyChanged(Sensor sensor, int accuracy) {
-		// We don't really care about sensor accuracy that much; ignore
 	}
 
 	// This is called when new samples arrive from the accelerometer
@@ -506,5 +498,10 @@ public class GridWatchService extends Service implements SensorEventListener {
 	public IBinder onBind(Intent arg0) {
 		// Service does not allow binding
 		return null;
+	}
+
+	@Override
+	public final void onAccuracyChanged(Sensor sensor, int accuracy) {
+		// We don't really care about sensor accuracy that much; ignore
 	}
 }
