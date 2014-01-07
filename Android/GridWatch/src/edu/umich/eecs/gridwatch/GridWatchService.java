@@ -55,7 +55,7 @@ public class GridWatchService extends Service implements SensorEventListener {
 	private final static String INTENT_EXTRA_EVENT_TIME = "event_time";
 
 	private final static int SAMPLE_FREQUENCY = 44100;
-	private final static int AUDIO_SAMPLES_TO_READ = SAMPLE_FREQUENCY / 4;
+	//private final static int AUDIO_SAMPLES_TO_READ = SAMPLE_FREQUENCY / 4;
 
 	// List of all of the active events we are currently handling
 	private ArrayList<GridWatchEvent> mEvents = new ArrayList<GridWatchEvent>();
@@ -193,9 +193,6 @@ public class GridWatchService extends Service implements SensorEventListener {
 		GridWatchEvent gwevent = new GridWatchEvent(GridWatchEventType.PLUGGED);
 		mEvents.add(gwevent);
 
-		Thread audioThread = new Thread(new GridWatchEventThread(gwevent));
-		audioThread.start();
-
 		processEvents();
 	}
 
@@ -207,6 +204,9 @@ public class GridWatchService extends Service implements SensorEventListener {
 
 		// Start the accelerometer getting samples
 		mSensorManager.registerListener(this, mAccel, SensorManager.SENSOR_DELAY_NORMAL);
+
+		Thread audioThread = new Thread(new GridWatchEventThread(gwevent));
+		audioThread.start();
 
 		startEventProcessTimer();
 	}
@@ -335,20 +335,20 @@ public class GridWatchService extends Service implements SensorEventListener {
 					AudioFormat.CHANNEL_IN_MONO,
 					AudioFormat.ENCODING_PCM_16BIT);
 
-			if (AUDIO_SAMPLES_TO_READ*3 > recBufferSize) {
-				recBufferSize = AUDIO_SAMPLES_TO_READ*3;
-			}
+		//	if (AUDIO_SAMPLES_TO_READ*3 > recBufferSize) {
+		//		recBufferSize = AUDIO_SAMPLES_TO_READ*3;
+		//	}
 
 			AudioRecord audioRecord = new AudioRecord(MediaRecorder.AudioSource.DEFAULT,
 					SAMPLE_FREQUENCY,
 					AudioFormat.CHANNEL_IN_MONO,
 					AudioFormat.ENCODING_PCM_16BIT,
-					recBufferSize);
+					recBufferSize*2);
 
 			audioRecord.startRecording();
 
 			while (true) {
-				short[] buffer = new short[AUDIO_SAMPLES_TO_READ];
+				short[] buffer = new short[recBufferSize];
 				int shortsRead = audioRecord.read(buffer, 0, buffer.length);
 				boolean done = mThisEvent.addMicrophoneSamples(buffer, shortsRead);
 				if (done) break;

@@ -1,25 +1,23 @@
 package edu.umich.eecs.gridwatch;
 
-import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
-import android.os.Environment;
 import android.util.FloatMath;
 
 public class GridWatchEvent {
 
 	private GridWatchEventType mEventType;
 	private long mTimestamp;
+
 	private boolean mMoved = false;
+	private boolean mSixtyHz = false;
 
 	private final static float ACCEL_MAG_THRESHOLD = 0.3f;
 	private final static long ACCEL_DURATION_NANOSECONDS = 5000000000l;
@@ -27,6 +25,8 @@ public class GridWatchEvent {
 	private float mAccelMagLast = 0.0f;
 	//private float mAccelMag = 0.0f;
 	private boolean mAccelFinished = false;
+
+	private boolean mSixtyHzFinished = false;
 
 	SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US);
 
@@ -42,7 +42,7 @@ public class GridWatchEvent {
 		mTimestamp = System.currentTimeMillis();
 
 
-
+/*
 		File root = Environment.getExternalStorageDirectory();
 		String now = mDateFormat.format(new Date());
 //		File rawFile = new File(root, "microphone_" + now + ".s16");
@@ -56,7 +56,7 @@ public class GridWatchEvent {
 
 			ascFW.write("; Sample Rate 44100\n");
 			ascFW.write("; Channels 1\n");
-		} catch (IOException e){}
+		} catch (IOException e){}*/
 	}
 
 	// Call this with an accelerometer sample.
@@ -103,7 +103,7 @@ public class GridWatchEvent {
 	}
 
 	public boolean addMicrophoneSamples (short[] buffer, int len) {
-
+/*
 		try {
 			for (int i=0; i<len; i++) {
 				double index = (1.0 / 44100.0) * i;
@@ -115,7 +115,10 @@ public class GridWatchEvent {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
+
+		mSixtyHz = true;
+		mSixtyHzFinished = true;
 
 		return true;
 
@@ -129,6 +132,7 @@ public class GridWatchEvent {
 			return true;
 		case UNPLUGGED:
 			if (!mAccelFinished) return false;
+			if (!mSixtyHzFinished) return false;
 			break;
 		}
 		return true;
@@ -150,6 +154,7 @@ public class GridWatchEvent {
 		switch (mEventType) {
 		case UNPLUGGED:
 			nameValuePairs.add(new BasicNameValuePair("moved", String.valueOf(mMoved)));
+			nameValuePairs.add(new BasicNameValuePair("sixty_hz", String.valueOf(mSixtyHz)));
 			break;
 		case PLUGGED:
 			break;
