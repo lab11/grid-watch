@@ -1,5 +1,9 @@
 package edu.umich.eecs.gridwatch;
 
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.Hashtable;
+
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -32,9 +36,9 @@ public class GridWatch extends Activity {
 	// setContentView(mLogView);
 	View mLogView = null;
 
+	// Tool for getting a pretty date
+	DateFormat mDateFormat = DateFormat.getDateTimeInstance();
 
-	//TextView mPendingCount;
-	//EditText mAlertServerEditText;
 
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB) @Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -47,20 +51,9 @@ public class GridWatch extends Activity {
 		setContentView(mMainView);
 		getActionBar().setDisplayHomeAsUpEnabled(false);
 
-
-		//SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		//String alertServer = settings.getString("alert_server",
-		//		getString(R.string.default_alert_server));
-
-		//mStatus = (TextView) findViewById(R.id.txt_status);
-		//mPendingCount = (TextView) findViewById(R.id.pending_count);
-		//mAlertServerEditText = (EditText) findViewById(R.id.alert_server);
-		//mAlertServerEditText.setHint(alertServer);
-
 		// "Inflate" the log view so that we can append
 		// log messages to it. Also save a reference to it
 		// so we can display this copy of the log.
-
 		mLogView = inflater.inflate(R.layout.log, null);
 
 	}
@@ -123,36 +116,29 @@ public class GridWatch extends Activity {
 
 			// Update the front display
 			if (intent.getStringExtra(INTENT_EXTRA_EVENT_TYPE) == "event_post") {
-				((TextView) mMainView.findViewById(R.id.txt_status)).setText(intent.getStringExtra(INTENT_EXTRA_EVENT_INFO));
-			}
-/*
 
-			// Display the event info on the home screen of the app
-			// event_info looks like: key|value||key|value
-			if (intent.hasExtra("event_info")) {
-			//	String status = "Most recent report:\n";
-				String status = "";
-				String event_info = intent.getStringExtra("event_info");
-				String[] info_items = event_info.split("\\|\\|");
+				Hashtable<String, String> result = new Hashtable<String, String>();
+
+				// Create hashtable from the result string
+				String event_info = intent.getStringExtra(INTENT_EXTRA_EVENT_INFO);
+				String[] info_items = event_info.split("\\,\\ ");
 				for (String item : info_items) {
-					String[] kv = item.split("\\|");
-					//status += kv[0] + ": " + kv[1] + "\n";
-					if (kv[0].equals("event_type")) {
-						if (kv[1].equals("plugged")) {
-							status = "Device was plugged in.";
-						} else if (kv[1].equals("unplugged_still")) {
-							status = "No movement, power outage!";
-						} else if (kv[1].equals("unplugged_moved")) {
-							status = "Device moved, everything is fine.";
-						}
+					String[] kv = item.split("\\=");
+					if (kv.length == 2) {
+						result.put(kv[0], kv[1]);
 					}
 				}
-			//	status += "\n";
-			//	status += "Transmission: " + intent.getStringExtra("event_transmission");
-				mStatus.setText(status);
-			} else {
-				mStatus.setText(R.string.no_messages);
-			}*/
+
+				String display = result.get("event_type") + " at ";
+				display += mDateFormat.format(new Date(Long.valueOf(result.get("time")))) + "\n";
+				if (result.get("event_type").equals("unplugged")) {
+					display += "movement: " + result.get("moved") + "\n";
+					display += "60 hz: " + result.get("sixty_hz") + "\n";
+				}
+
+				((TextView) mMainView.findViewById(R.id.txt_status)).setText(display);
+			}
+
 		}
 	};
 
