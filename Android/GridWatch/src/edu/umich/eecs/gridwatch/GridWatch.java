@@ -80,7 +80,7 @@ public class GridWatch extends Activity {
 	protected void onPause() {
 		super.onPause();
 
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(mServiceMessageReceiver);
+	//	LocalBroadcastManager.getInstance(this).unregisterReceiver(mServiceMessageReceiver);
 	}
 
 	@Override

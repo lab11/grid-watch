@@ -1,14 +1,19 @@
 package edu.umich.eecs.gridwatch;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
+import android.os.Environment;
 import android.util.FloatMath;
-import android.util.Log;
 
 public class GridWatchEvent {
 
@@ -23,12 +28,35 @@ public class GridWatchEvent {
 	//private float mAccelMag = 0.0f;
 	private boolean mAccelFinished = false;
 
+	SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US);
+
+
+
+	FileWriter ascFW;
+
 	public GridWatchEvent (GridWatchEventType eventType) {
 		mEventType = eventType;
 
 		// Get the timestamp immediately after we determine
 		// that an event happened.
 		mTimestamp = System.currentTimeMillis();
+
+
+
+		File root = Environment.getExternalStorageDirectory();
+		String now = mDateFormat.format(new Date());
+//		File rawFile = new File(root, "microphone_" + now + ".s16");
+		File asciiFile = new File(root, "microphone_" + now + ".dat");
+
+		//FileOutputStream rawFW;
+
+		try {
+			//rawFW = new FileOutputStream(rawFile.getAbsolutePath());
+			ascFW = new FileWriter(asciiFile.getAbsolutePath());
+
+			ascFW.write("; Sample Rate 44100\n");
+			ascFW.write("; Channels 1\n");
+		} catch (IOException e){}
 	}
 
 	// Call this with an accelerometer sample.
@@ -64,8 +92,6 @@ public class GridWatchEvent {
 		mAccelMagLast = accelMagCurrent;
 		//mAccelMag = (mAccelMag * 0.9f) + delta;
 
-		Log.d("GridWatchService", "accel mag: " + delta);
-
 		if (delta > ACCEL_MAG_THRESHOLD) {
 			// We detected movement, don't need any more samples
 			mMoved = true;
@@ -73,6 +99,25 @@ public class GridWatchEvent {
 			return true;
 		}
 		return false;
+
+	}
+
+	public boolean addMicrophoneSamples (short[] buffer, int len) {
+
+		try {
+			for (int i=0; i<len; i++) {
+				double index = (1.0 / 44100.0) * i;
+				double val = buffer[i] / (double) Short.MAX_VALUE;
+				//rawFW.write(buffer[i]);
+				ascFW.write(String.valueOf(index) + " " + String.valueOf(val) + "\n");
+			}
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return true;
 
 	}
 

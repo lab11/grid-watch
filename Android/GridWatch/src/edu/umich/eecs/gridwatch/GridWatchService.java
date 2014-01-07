@@ -33,6 +33,9 @@ import android.hardware.SensorManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
+import android.media.MediaRecorder;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -50,6 +53,9 @@ public class GridWatchService extends Service implements SensorEventListener {
 	private final static String INTENT_EXTRA_EVENT_TYPE = "event_type";
 	private final static String INTENT_EXTRA_EVENT_INFO = "event_info";
 	private final static String INTENT_EXTRA_EVENT_TIME = "event_time";
+
+	private final static int SAMPLE_FREQUENCY = 44100;
+	private final static int AUDIO_SAMPLES_TO_READ = SAMPLE_FREQUENCY / 4;
 
 	// List of all of the active events we are currently handling
 	private ArrayList<GridWatchEvent> mEvents = new ArrayList<GridWatchEvent>();
@@ -186,6 +192,10 @@ public class GridWatchService extends Service implements SensorEventListener {
 
 		GridWatchEvent gwevent = new GridWatchEvent(GridWatchEventType.PLUGGED);
 		mEvents.add(gwevent);
+
+		Thread audioThread = new Thread(new GridWatchEventThread(gwevent));
+		audioThread.start();
+
 		processEvents();
 	}
 
@@ -307,6 +317,48 @@ public class GridWatchService extends Service implements SensorEventListener {
 			}
 		}*/
 	}
+
+
+
+	class GridWatchEventThread implements Runnable {
+		GridWatchEvent mThisEvent;
+
+		public GridWatchEventThread (GridWatchEvent gwevent) {
+			mThisEvent = gwevent;
+		}
+
+		@Override
+		public void run() {
+		//	Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+
+			int recBufferSize = AudioRecord.getMinBufferSize(SAMPLE_FREQUENCY,
+					AudioFormat.CHANNEL_IN_MONO,
+					AudioFormat.ENCODING_PCM_16BIT);
+
+			if (AUDIO_SAMPLES_TO_READ*3 > recBufferSize) {
+				recBufferSize = AUDIO_SAMPLES_TO_READ*3;
+			}
+
+			AudioRecord audioRecord = new AudioRecord(MediaRecorder.AudioSource.DEFAULT,
+					SAMPLE_FREQUENCY,
+					AudioFormat.CHANNEL_IN_MONO,
+					AudioFormat.ENCODING_PCM_16BIT,
+					recBufferSize);
+
+			audioRecord.startRecording();
+
+			while (true) {
+				short[] buffer = new short[AUDIO_SAMPLES_TO_READ];
+				int shortsRead = audioRecord.read(buffer, 0, buffer.length);
+				boolean done = mThisEvent.addMicrophoneSamples(buffer, shortsRead);
+				if (done) break;
+			}
+
+			audioRecord.stop();
+			audioRecord.release();
+		}
+	}
+
 
 	// Class that handles transmitting information about events. This
 	// operates asynchronously at some point in the future.
