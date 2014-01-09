@@ -448,8 +448,11 @@ public class GridWatchService extends Service implements SensorEventListener {
 		// Get the phone's current location
 		double lat = -1, lon = -1;
 		String provider = null;
-		if (mLocationManager != null)
-			provider = mLocationManager.getBestProvider(new Criteria(), false);
+		Criteria loc_criteria = new Criteria();
+		loc_criteria.setAccuracy(Criteria.ACCURACY_FINE);
+		if (mLocationManager != null) {
+			provider = mLocationManager.getBestProvider(loc_criteria, false);
+		}
 		if (provider != null) {
 			Location location = mLocationManager.getLastKnownLocation(provider);
 			if (location != null) {
