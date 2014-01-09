@@ -12,11 +12,15 @@ except ImportError:
 	print('sudo pip install socketIO-client')
 	sys.exit(1)
 
+import logging
+logging.basicConfig()
+
 SOCKETIO_HOST      = 'inductor.eecs.umich.edu'
-SOCKETIO_PORT      = 8080
+SOCKETIO_PORT      = 8082
 SOCKETIO_NAMESPACE = 'stream'
 
-query = {'profile_id': 'HthZRrHnlC'}
+query = {'profile_id': 'HthZRrHnlC',
+         'time': 20000000}
 
 
 pp = pprint.PrettyPrinter(indent=4)
