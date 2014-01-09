@@ -137,15 +137,16 @@ public class GridWatchService extends Service implements SensorEventListener {
 	@Override
 	public void onStart(Intent intent, int startId) {
 		Intent lIntent = new Intent(INTENT_NAME);
-		lIntent.putExtra(INTENT_EXTRA_EVENT_TYPE, "started");
+		lIntent.putExtra(INTENT_EXTRA_EVENT_TYPE, "onstarted");
 		lIntent.putExtra(INTENT_EXTRA_EVENT_TIME, mDateFormat.format(new Date()));
 		broadcastIntent(lIntent);
 	}
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		Log.d("GridWatchService", "onStartCommand!!");
 		Intent lIntent = new Intent(INTENT_NAME);
-		lIntent.putExtra(INTENT_EXTRA_EVENT_TYPE, "started");
+		lIntent.putExtra(INTENT_EXTRA_EVENT_TYPE, "startedcommand");
 		lIntent.putExtra(INTENT_EXTRA_EVENT_TIME, mDateFormat.format(new Date()));
 		broadcastIntent(lIntent);
 		// We want this service to continue running until it is explicitly

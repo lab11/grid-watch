@@ -10,6 +10,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -56,17 +57,42 @@ public class GridWatch extends Activity {
 		// so we can display this copy of the log.
 		mLogView = inflater.inflate(R.layout.log, null);
 
+		// Register that we want to receive notices from the service.
+		LocalBroadcastManager.getInstance(this).registerReceiver(mServiceMessageReceiver,
+				new IntentFilter(INTENT_NAME));
+
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
 
+		// Replay the log into the log view
+		SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+		String log = preferences.getString("log", "");
+
+		String[] log_items = log.split("\\&\\&");
+		for (String item : log_items) {
+			String[] log_fields = item.split("\\|");
+			if (log_fields.length > 1) {
+				String time = log_fields[0];
+				String event_type = log_fields[1];
+				String info;
+				if (log_fields.length > 2) {
+					info = log_fields[2];
+				} else {
+					info = null;
+				}
+				addLogItem(time, event_type, info);
+			}
+		}
+
+		// Make sure the service is running
 		Intent intent = new Intent(this, GridWatchService.class);
 		startService(intent);
 
-		LocalBroadcastManager.getInstance(this).registerReceiver(mServiceMessageReceiver,
-				new IntentFilter(INTENT_NAME));
+		//LocalBroadcastManager.getInstance(this).registerReceiver(mServiceMessageReceiver,
+		//		new IntentFilter(INTENT_NAME));
 	}
 
 	@Override
@@ -90,28 +116,9 @@ public class GridWatch extends Activity {
 			//mPendingCount.setText(" "+Integer.toString(intent.getIntExtra("pending_queue_len", 0)));
 
 			// Append to the log
-
-			// Add the divider for each log item
-			LinearLayout log_linear_layout = (LinearLayout) mLogView.findViewById(R.id.log_linear);
-			View ruler = new View(context);
-			ruler.setBackgroundColor(Color.DKGRAY);
-			log_linear_layout.addView(ruler, 1, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 2));
-			// Add the date timestamp
-			TextView text_log_time = new TextView(context);
-			text_log_time.setBackgroundColor(Color.WHITE);
-			text_log_time.setTextColor(Color.BLACK);
-			text_log_time.setText(intent.getStringExtra(INTENT_EXTRA_EVENT_TIME));
-			log_linear_layout.addView(text_log_time, 2);
-			// Add any information about what happened
-			TextView text_log_entry = new TextView(context);
-			text_log_entry.setBackgroundColor(Color.WHITE);
-			text_log_entry.setTextColor(Color.BLACK);
-			String log_entry = intent.getStringExtra(INTENT_EXTRA_EVENT_TYPE);
-			if (intent.hasExtra(INTENT_EXTRA_EVENT_INFO)) {
-				log_entry += " - " + intent.getStringExtra(INTENT_EXTRA_EVENT_INFO);
-			}
-			text_log_entry.setText(log_entry);
-			log_linear_layout.addView(text_log_entry, 3);
+			updateLog(intent.getStringExtra(INTENT_EXTRA_EVENT_TIME),
+					intent.getStringExtra(INTENT_EXTRA_EVENT_TYPE),
+					intent.getStringExtra(INTENT_EXTRA_EVENT_INFO));
 
 
 			// Update the front display
@@ -162,6 +169,53 @@ public class GridWatch extends Activity {
 			default:
 				return super.onOptionsItemSelected(item);
 		}
+	}
+
+	private void updateLog (String time, String event_type, String info) {
+		SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+		String log = preferences.getString("log", "");
+
+		log += "&&" + time + "|" + event_type;
+		if (info != null) {
+			log += "|" + info;
+		}
+
+		addLogItem(time, event_type, info);
+
+		if (log.length() > 5000) {
+			log = log.substring(0, 5000);
+		}
+
+		// Store values between instances here
+		SharedPreferences.Editor editor = preferences.edit();  // Put the values from the UI
+		editor.putString("log", log);
+		// Commit to storage
+		editor.commit();
+	}
+
+	private void addLogItem (String time, String event_type, String info) {
+		Context context = getApplicationContext();
+
+		LinearLayout log_linear_layout = (LinearLayout) mLogView.findViewById(R.id.log_linear);
+		View ruler = new View(context);
+		ruler.setBackgroundColor(Color.DKGRAY);
+		log_linear_layout.addView(ruler, 1, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 2));
+		// Add the date timestamp
+		TextView text_log_time = new TextView(context);
+		text_log_time.setBackgroundColor(Color.WHITE);
+		text_log_time.setTextColor(Color.BLACK);
+		text_log_time.setText(time);
+		log_linear_layout.addView(text_log_time, 2);
+		// Add any information about what happened
+		TextView text_log_entry = new TextView(context);
+		text_log_entry.setBackgroundColor(Color.WHITE);
+		text_log_entry.setTextColor(Color.BLACK);
+		String log_entry = event_type;
+		if (info != null) {
+			log_entry += " - " + info;
+		}
+		text_log_entry.setText(log_entry);
+		log_linear_layout.addView(text_log_entry, 3);
 	}
 
 	/*
