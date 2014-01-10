@@ -1,6 +1,7 @@
 package edu.umich.eecs.gridwatch;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
 
@@ -10,7 +11,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,6 +20,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -27,7 +28,7 @@ public class GridWatch extends Activity {
 	private final static String INTENT_NAME = "GridWatch-update-event";
 	private final static String INTENT_EXTRA_EVENT_TYPE = "event_type";
 	private final static String INTENT_EXTRA_EVENT_INFO = "event_info";
-	private final static String INTENT_EXTRA_EVENT_TIME = "event_time";
+	//private final static String INTENT_EXTRA_EVENT_TIME = "event_time";
 
 	// This is the main page view
 	View mMainView = null;
@@ -39,6 +40,8 @@ public class GridWatch extends Activity {
 
 	// Tool for getting a pretty date
 	DateFormat mDateFormat = DateFormat.getDateTimeInstance();
+
+	private GridWatchLogger mGWLogger;
 
 
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB) @Override
@@ -61,38 +64,23 @@ public class GridWatch extends Activity {
 		LocalBroadcastManager.getInstance(this).registerReceiver(mServiceMessageReceiver,
 				new IntentFilter(INTENT_NAME));
 
+		mGWLogger = new GridWatchLogger();
+
+		Button log_refresh_btn = (Button) mLogView.findViewById(R.id.log_refresh);
+		log_refresh_btn.setOnClickListener(refreshLog);
+
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
 
-		// Replay the log into the log view
-		SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-		String log = preferences.getString("log", "");
-
-		String[] log_items = log.split("\\&\\&");
-		for (String item : log_items) {
-			String[] log_fields = item.split("\\|");
-			if (log_fields.length > 1) {
-				String time = log_fields[0];
-				String event_type = log_fields[1];
-				String info;
-				if (log_fields.length > 2) {
-					info = log_fields[2];
-				} else {
-					info = null;
-				}
-				addLogItem(time, event_type, info);
-			}
-		}
-
 		// Make sure the service is running
 		Intent intent = new Intent(this, GridWatchService.class);
 		startService(intent);
 
-		//LocalBroadcastManager.getInstance(this).registerReceiver(mServiceMessageReceiver,
-		//		new IntentFilter(INTENT_NAME));
+	//	LocalBroadcastManager.getInstance(this).registerReceiver(mServiceMessageReceiver,
+	//			new IntentFilter(INTENT_NAME));
 	}
 
 	@Override
@@ -114,12 +102,6 @@ public class GridWatch extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			//mPendingCount.setText(" "+Integer.toString(intent.getIntExtra("pending_queue_len", 0)));
-
-			// Append to the log
-			updateLog(intent.getStringExtra(INTENT_EXTRA_EVENT_TIME),
-					intent.getStringExtra(INTENT_EXTRA_EVENT_TYPE),
-					intent.getStringExtra(INTENT_EXTRA_EVENT_INFO));
-
 
 			// Update the front display
 			if (intent.getStringExtra(INTENT_EXTRA_EVENT_TYPE) == "event_post") {
@@ -171,41 +153,27 @@ public class GridWatch extends Activity {
 		}
 	}
 
-	private void updateLog (String time, String event_type, String info) {
-		SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-		String log = preferences.getString("log", "");
-
-		log += "&&" + time + "|" + event_type;
-		if (info != null) {
-			log += "|" + info;
-		}
-
-		addLogItem(time, event_type, info);
-
-		if (log.length() > 5000) {
-			log = log.substring(0, 5000);
-		}
-
-		// Store values between instances here
-		SharedPreferences.Editor editor = preferences.edit();  // Put the values from the UI
-		editor.putString("log", log);
-		// Commit to storage
-		editor.commit();
+	// Remove all text elements in the log linear items view
+	private void clearLog () {
+		LinearLayout log_linear_layout = (LinearLayout) mLogView.findViewById(R.id.log_linear);
+		LinearLayout log_linear_items_layout = (LinearLayout) log_linear_layout.findViewById(R.id.log_linear_items);
+		log_linear_items_layout.removeAllViews();
 	}
 
+	// Add a log line to the log view
 	private void addLogItem (String time, String event_type, String info) {
 		Context context = getApplicationContext();
 
-		LinearLayout log_linear_layout = (LinearLayout) mLogView.findViewById(R.id.log_linear);
+		LinearLayout log_linear_layout = (LinearLayout) mLogView.findViewById(R.id.log_linear_items);
 		View ruler = new View(context);
 		ruler.setBackgroundColor(Color.DKGRAY);
-		log_linear_layout.addView(ruler, 1, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 2));
+		log_linear_layout.addView(ruler, 0, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 2));
 		// Add the date timestamp
 		TextView text_log_time = new TextView(context);
 		text_log_time.setBackgroundColor(Color.WHITE);
 		text_log_time.setTextColor(Color.BLACK);
 		text_log_time.setText(time);
-		log_linear_layout.addView(text_log_time, 2);
+		log_linear_layout.addView(text_log_time, 1);
 		// Add any information about what happened
 		TextView text_log_entry = new TextView(context);
 		text_log_entry.setBackgroundColor(Color.WHITE);
@@ -215,8 +183,34 @@ public class GridWatch extends Activity {
 			log_entry += " - " + info;
 		}
 		text_log_entry.setText(log_entry);
-		log_linear_layout.addView(text_log_entry, 3);
+		log_linear_layout.addView(text_log_entry, 2);
 	}
+
+	// Read in the log file and write it to the log view
+	private View.OnClickListener refreshLog = new View.OnClickListener() {
+		@Override
+		public void onClick (View v) {
+			clearLog();
+
+			ArrayList<String> log = mGWLogger.read();
+
+			for (String line : log) {
+				String[] log_fields = line.split("\\|");
+				if (log_fields.length > 1) {
+					String time = log_fields[0];
+					String event_type = log_fields[1];
+					String info;
+					if (log_fields.length > 2) {
+						info = log_fields[2];
+					} else {
+						info = null;
+					}
+					addLogItem(time, event_type, info);
+				}
+			}
+		}
+	};
+
 
 	/*
 	@TargetApi(Build.VERSION_CODES.GINGERBREAD) public void setAlertServer(View view) {

@@ -30,7 +30,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.media.AudioFormat;
@@ -78,11 +77,16 @@ public class GridWatchService extends Service implements SensorEventListener {
 	private LinkedBlockingQueue<HttpPost> mAlertQ = new LinkedBlockingQueue<HttpPost>();
 
 	// Tool for getting a pretty date
-	DateFormat mDateFormat = DateFormat.getDateTimeInstance();
+	private DateFormat mDateFormat = DateFormat.getDateTimeInstance();
+
+	private GridWatchLogger mGWLogger;
 
 
 	@Override
 	public void onCreate() {
+
+		mGWLogger = new GridWatchLogger();
+		mGWLogger.log(mDateFormat.format(new Date()), "created", null);
 
 		IntentFilter cfilter = new IntentFilter();
 		cfilter.addAction(android.net.ConnectivityManager.CONNECTIVITY_ACTION);
@@ -102,10 +106,10 @@ public class GridWatchService extends Service implements SensorEventListener {
 		Log.d("GridWatchService", "service started");
 		Toast.makeText(this, "GridWatch started", Toast.LENGTH_SHORT).show();
 
-		Intent lIntent = new Intent(INTENT_NAME);
-		lIntent.putExtra(INTENT_EXTRA_EVENT_TYPE, "created");
-		lIntent.putExtra(INTENT_EXTRA_EVENT_TIME, mDateFormat.format(new Date()));
-		broadcastIntent(lIntent);
+	//	Intent lIntent = new Intent(INTENT_NAME);
+	//	lIntent.putExtra(INTENT_EXTRA_EVENT_TYPE, "created");
+	//	lIntent.putExtra(INTENT_EXTRA_EVENT_TIME, mDateFormat.format(new Date()));
+	//	broadcastIntent(lIntent);
 	}
 
 	@Override
@@ -113,11 +117,7 @@ public class GridWatchService extends Service implements SensorEventListener {
 		Log.d("GridWatchService", "service destroyed");
 		Toast.makeText(this, "GridWatch ended", Toast.LENGTH_SHORT).show();
 
-		// Notify the main app that the service is ending
-		Intent lIntent = new Intent(INTENT_NAME);
-		lIntent.putExtra(INTENT_EXTRA_EVENT_TYPE, "destroy");
-		lIntent.putExtra(INTENT_EXTRA_EVENT_TIME, mDateFormat.format(new Date()));
-		broadcastIntent(lIntent);
+		mGWLogger.log(mDateFormat.format(new Date()), "destroyed", null);
 
 		// Unregister us from different events
 		this.unregisterReceiver(mPowerActionReceiver);
@@ -136,19 +136,13 @@ public class GridWatchService extends Service implements SensorEventListener {
 	// method will not be called.
 	@Override
 	public void onStart(Intent intent, int startId) {
-		Intent lIntent = new Intent(INTENT_NAME);
-		lIntent.putExtra(INTENT_EXTRA_EVENT_TYPE, "onstarted");
-		lIntent.putExtra(INTENT_EXTRA_EVENT_TIME, mDateFormat.format(new Date()));
-		broadcastIntent(lIntent);
+		mGWLogger.log(mDateFormat.format(new Date()), "started_old", null);
 	}
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.d("GridWatchService", "onStartCommand!!");
-		Intent lIntent = new Intent(INTENT_NAME);
-		lIntent.putExtra(INTENT_EXTRA_EVENT_TYPE, "startedcommand");
-		lIntent.putExtra(INTENT_EXTRA_EVENT_TIME, mDateFormat.format(new Date()));
-		broadcastIntent(lIntent);
+		mGWLogger.log(mDateFormat.format(new Date()), "started", null);
+
 		// We want this service to continue running until it is explicitly
 		// stopped, so return sticky.
 		return START_STICKY;
@@ -446,26 +440,18 @@ public class GridWatchService extends Service implements SensorEventListener {
 		nameValuePairs.add(new BasicNameValuePair("event_type", gwevent.getEventType()));
 
 		// Get the phone's current location
-		double lat = -1, lon = -1;
-		String provider = null;
-		Criteria loc_criteria = new Criteria();
-		loc_criteria.setAccuracy(Criteria.ACCURACY_FINE);
-		if (mLocationManager != null) {
-			provider = mLocationManager.getBestProvider(loc_criteria, false);
+		Location gpslocation = getLocationByProvider(LocationManager.GPS_PROVIDER);
+		if (gpslocation != null) {
+			nameValuePairs.add(new BasicNameValuePair("gps_latitude", String.valueOf(gpslocation.getLatitude())));
+			nameValuePairs.add(new BasicNameValuePair("gps_longitude", String.valueOf(gpslocation.getLongitude())));
+			nameValuePairs.add(new BasicNameValuePair("gps_accuracy", String.valueOf(gpslocation.getAccuracy())));
 		}
-		if (provider != null) {
-			Location location = mLocationManager.getLastKnownLocation(provider);
-			if (location != null) {
-				lat = location.getLatitude();
-				lon = location.getLongitude();
-			} else {
-				Log.d("GridWatchService", "Location Provider Unavailable");
-			}
-		} else {
-			Log.d("GridWatchService", "Couldn't get a location provider");
+		Location networkLocation = getLocationByProvider(LocationManager.NETWORK_PROVIDER);
+		if (networkLocation != null) {
+			nameValuePairs.add(new BasicNameValuePair("network_latitude", String.valueOf(networkLocation.getLatitude())));
+			nameValuePairs.add(new BasicNameValuePair("network_longitude", String.valueOf(networkLocation.getLongitude())));
+			nameValuePairs.add(new BasicNameValuePair("network_accuracy", String.valueOf(networkLocation.getAccuracy())));
 		}
-		nameValuePairs.add(new BasicNameValuePair("latitude", String.valueOf(lat)));
-		nameValuePairs.add(new BasicNameValuePair("longitude", String.valueOf(lon)));
 
 		// Determine if we are on wifi, mobile, or have no connection
 		String connection_type = "unknown";
@@ -521,7 +507,8 @@ public class GridWatchService extends Service implements SensorEventListener {
 		lIntent.putExtra(INTENT_EXTRA_EVENT_INFO, post_info);
 		lIntent.putExtra(INTENT_EXTRA_EVENT_TIME, mDateFormat.format(new Date()));
 		broadcastIntent(lIntent);
-		Log.d("GridWatchService", post_info);
+
+		mGWLogger.log(mDateFormat.format(new Date()), "event_post", post_info);
 
 		// Create the task to run in the background at some point in the future
 		new PostAlertTask().execute(httppost);
@@ -550,6 +537,16 @@ public class GridWatchService extends Service implements SensorEventListener {
 		}
 	}
 
+	private Location getLocationByProvider(String provider) {
+		Location location = null;
+		try {
+			if (mLocationManager.isProviderEnabled(provider)) {
+				location = mLocationManager.getLastKnownLocation(provider);
+			}
+		} catch (IllegalArgumentException e) { }
+		return location;
+	}
+
 	@Override
 	public IBinder onBind(Intent arg0) {
 		// Service does not allow binding
@@ -560,4 +557,92 @@ public class GridWatchService extends Service implements SensorEventListener {
 	public final void onAccuracyChanged(Sensor sensor, int accuracy) {
 		// We don't really care about sensor accuracy that much; ignore
 	}
+
+
+
+	/*
+	public void startRecording() {
+	    gpsTimer.cancel();
+	    gpsTimer = new Timer();
+	    long checkInterval = getGPSCheckMilliSecsFromPrefs();
+	    long minDistance = getMinDistanceFromPrefs();
+	    // receive updates
+	    LocationManager locationManager = (LocationManager) getApplicationContext()
+	            .getSystemService(Context.LOCATION_SERVICE);
+	    for (String s : locationManager.getAllProviders()) {
+	        locationManager.requestLocationUpdates(s, checkInterval,
+	                minDistance, new LocationListener() {
+
+	                    @Override
+	                    public void onStatusChanged(String provider,
+	                            int status, Bundle extras) {}
+
+	                    @Override
+	                    public void onProviderEnabled(String provider) {}
+
+	                    @Override
+	                    public void onProviderDisabled(String provider) {}
+
+	                    @Override
+	                    public void onLocationChanged(Location location) {
+	                        // if this is a gps location, we can use it
+	                        if (location.getProvider().equals(
+	                                LocationManager.GPS_PROVIDER)) {
+	                            doLocationUpdate(location, true);
+	                        }
+	                    }
+	                });
+	        // //Toast.makeText(this, "GPS Service STARTED",
+	        // Toast.LENGTH_LONG).show();
+	        gps_recorder_running = true;
+	    }
+	    // start the gps receiver thread
+	    gpsTimer.scheduleAtFixedRate(new TimerTask() {
+
+	        @Override
+	        public void run() {
+	            Location location = getBestLocation();
+	            doLocationUpdate(location, false);
+	        }
+	    }, 0, checkInterval);
+	}
+
+	public void doLocationUpdate(Location l, boolean force) {
+	    long minDistance = getMinDistanceFromPrefs();
+	    Log.d(TAG, "update received:" + l);
+	    if (l == null) {
+	        Log.d(TAG, "Empty location");
+	        if (force)
+	            Toast.makeText(this, "Current location not available",
+	                    Toast.LENGTH_SHORT).show();
+	        return;
+	    }
+	    if (lastLocation != null) {
+	        float distance = l.distanceTo(lastLocation);
+	        Log.d(TAG, "Distance to last: " + distance);
+	        if (l.distanceTo(lastLocation) < minDistance && !force) {
+	            Log.d(TAG, "Position didn't change");
+	            return;
+	        }
+	        if (l.getAccuracy() >= lastLocation.getAccuracy()
+	                && l.distanceTo(lastLocation) < l.getAccuracy() && !force) {
+	            Log.d(TAG,
+	                    "Accuracy got worse and we are still "
+	                      + "within the accuracy range.. Not updating");
+	            return;
+	        }
+	        if (l.getTime() <= lastprovidertimestamp && !force) {
+	            Log.d(TAG, "Timestamp not never than last");
+	            return;
+	        }
+	    }
+	    // upload/store your location here
+	}
+
+*/
+
+
+
+
+
 }
