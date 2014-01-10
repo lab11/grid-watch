@@ -1,16 +1,26 @@
 HTTP POST String:
 
-KEY         TYPE    REQ  VALUE
+KEY                TYPE    REQ  VALUE
 --------------------------------------------------------------------------
-id          str     Y    unique id for the phone
-time        int     Y    timestamp of power change event in milliseconds
-latitude    float   Y    GPS latitude coordinate
-longitude   float   Y    GPS longitude coordinate
-phone_type  str     N    manufacturer and model of phone
-os          enum    Y    one of: "android", "ios", "windows phone"
-os_version  str     N    version string of the OS (ex: "4.2.2")
-app_version str     Y    version string of the app (ex: "0.2")
-network     enum    N    type of internet connection at the power change event.
-                         one of: "mobile", "wifi", "disconnected", "unknown"
-event_type  enum    Y    one of: "unplugged", "plugged"
-moved       bool    N    whether or not the device moved when the event occurred
+id                 str     Y    unique id for the phone
+time               int     Y    timestamp of power change event in milliseconds
+phone_type         str     N    manufacturer and model of phone
+os                 enum    Y    one of: "android", "ios", "windows phone"
+os_version         str     N    version string of the OS (ex: "4.2.2")
+app_version        str     Y    version string of the app (ex: "0.2")
+network            enum    N    type of internet connection at the power change event.
+                                one of: "mobile", "wifi", "disconnected", "unknown"
+event_type         enum    Y    one of: "unplugged", "plugged"
+moved              bool    N    whether or not the device moved when the event occurred
+gps_latitude       float   Y    GPS latitude coordinate
+gps_longitude      float   Y    GPS longitude coordinate
+gps_accuracy       float   Y    GPS accuracy in meters
+gps_altitude       float   Y    GPS altitude in meters above sea level
+gps_time           int     Y    Time in milliseconds the location measurement was taken
+gps_speed          float   Y    Speed of device in meters/second
+network_latitude   float   Y    Network latitude coordinate
+network_longitude  float   Y    Network longitude coordinate
+network_accuracy   float   Y    Network accuracy in meters
+network_altitude   float   Y    Network altitude in meters above sea level
+network_time       int     Y    Time in milliseconds the location measurement was taken
+network_speed      float   T    Speed of device in meters/second
