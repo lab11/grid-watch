@@ -114,10 +114,11 @@ public class GridWatchService extends Service implements SensorEventListener {
 
 	@Override
 	public void onDestroy() {
+		mGWLogger.log(mDateFormat.format(new Date()), "destroyed", null);
+
+
 		Log.d("GridWatchService", "service destroyed");
 		Toast.makeText(this, "GridWatch ended", Toast.LENGTH_SHORT).show();
-
-		mGWLogger.log(mDateFormat.format(new Date()), "destroyed", null);
 
 		// Unregister us from different events
 		this.unregisterReceiver(mPowerActionReceiver);
@@ -259,60 +260,7 @@ public class GridWatchService extends Service implements SensorEventListener {
 			mSensorManager.unregisterListener(this);
 		}
 
-		/*if (mAccelHistory == null) {
-			Log.d("GridWatchService", "first sensor event");
-			mAccelHistory = new float[10][3];
-			mAccelFirstTime = event.timestamp;
-
-			for (int i=0; i<10; i++) {
-				mAccelHistory[i][0] = event.values[0];
-				mAccelHistory[i][1] = event.values[1];
-				mAccelHistory[i][2] = event.values[2];
-			}
-		} else {
-			// Use i to index into the history. We only end up using 1 sample per second,
-			// but because sample rates differ between phones we may get many per second.
-			int i = (int) (((event.timestamp-mAccelFirstTime) / 500000000) % 10);
-			Log.d("GridWatchService", "sensor event i=" + i);
-			mAccelHistory[i][0] = event.values[0];
-			mAccelHistory[i][1] = event.values[1];
-			mAccelHistory[i][2] = event.values[2];
-
-			for (int j=0; j<10; j++) {
-				if (Math.abs(mAccelHistory[j][0]-mAccelHistory[i][0]) > 2)
-					moved = true;
-				if (Math.abs(mAccelHistory[j][1]-mAccelHistory[i][1]) > 2)
-					moved = true;
-				if (Math.abs(mAccelHistory[j][2]-mAccelHistory[i][2]) > 2)
-					moved = true;
-			}
-
-			if (moved) {
-				// Once we've determined we've moved we can bail on this unplug event
-				mSensorManager.unregisterListener(this);
-				mAccelHistory = null;
-
-				Log.d("GridWatchService", "sample " + i + " found movement");
-				Toast.makeText(this, "GridWatch -> No Power Outage", Toast.LENGTH_SHORT).show();
-
-				postEvent("unplugged_moved");
-				return;
-			}
-
-			if (i == 9) {
-				// Got 5 seconds worth of data, that's enough
-				mSensorManager.unregisterListener(this);
-				mAccelHistory = null;
-
-				// Didn't detect motion so transmit an unplugged still event
-				Log.d("GridWatchService", "no movement found, should trigger");
-				Toast.makeText(this, "GridWatch -> Power Outage!", Toast.LENGTH_SHORT).show();
-
-				postEvent("unplugged_still");
-			}
-		}*/
 	}
-
 
 
 	class GridWatchEventThread implements Runnable {
@@ -440,17 +388,23 @@ public class GridWatchService extends Service implements SensorEventListener {
 		nameValuePairs.add(new BasicNameValuePair("event_type", gwevent.getEventType()));
 
 		// Get the phone's current location
-		Location gpslocation = getLocationByProvider(LocationManager.GPS_PROVIDER);
-		if (gpslocation != null) {
-			nameValuePairs.add(new BasicNameValuePair("gps_latitude", String.valueOf(gpslocation.getLatitude())));
-			nameValuePairs.add(new BasicNameValuePair("gps_longitude", String.valueOf(gpslocation.getLongitude())));
-			nameValuePairs.add(new BasicNameValuePair("gps_accuracy", String.valueOf(gpslocation.getAccuracy())));
+		Location gpsLocation = getLocationByProvider(LocationManager.GPS_PROVIDER);
+		if (gpsLocation != null) {
+			nameValuePairs.add(new BasicNameValuePair("gps_latitude", String.valueOf(gpsLocation.getLatitude())));
+			nameValuePairs.add(new BasicNameValuePair("gps_longitude", String.valueOf(gpsLocation.getLongitude())));
+			nameValuePairs.add(new BasicNameValuePair("gps_accuracy", String.valueOf(gpsLocation.getAccuracy())));
+			nameValuePairs.add(new BasicNameValuePair("gps_time", String.valueOf(gpsLocation.getTime())));
+			nameValuePairs.add(new BasicNameValuePair("gps_altitude", String.valueOf(gpsLocation.getAltitude())));
+			nameValuePairs.add(new BasicNameValuePair("gps_speed", String.valueOf(gpsLocation.getSpeed())));
 		}
 		Location networkLocation = getLocationByProvider(LocationManager.NETWORK_PROVIDER);
 		if (networkLocation != null) {
 			nameValuePairs.add(new BasicNameValuePair("network_latitude", String.valueOf(networkLocation.getLatitude())));
 			nameValuePairs.add(new BasicNameValuePair("network_longitude", String.valueOf(networkLocation.getLongitude())));
 			nameValuePairs.add(new BasicNameValuePair("network_accuracy", String.valueOf(networkLocation.getAccuracy())));
+			nameValuePairs.add(new BasicNameValuePair("network_time", String.valueOf(networkLocation.getTime())));
+			nameValuePairs.add(new BasicNameValuePair("network_altitude", String.valueOf(networkLocation.getAltitude())));
+			nameValuePairs.add(new BasicNameValuePair("network_speed", String.valueOf(networkLocation.getSpeed())));
 		}
 
 		// Determine if we are on wifi, mobile, or have no connection
