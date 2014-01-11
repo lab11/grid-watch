@@ -31,6 +31,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -39,6 +40,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.Settings.Secure;
@@ -52,6 +54,8 @@ public class GridWatchService extends Service implements SensorEventListener {
 	private final static String INTENT_EXTRA_EVENT_TYPE = "event_type";
 	private final static String INTENT_EXTRA_EVENT_INFO = "event_info";
 	private final static String INTENT_EXTRA_EVENT_TIME = "event_time";
+
+	private final static long LOCATION_WAIT_TIME = 300000l;
 
 	private final static int SAMPLE_FREQUENCY = 44100;
 	//private final static int AUDIO_SAMPLES_TO_READ = SAMPLE_FREQUENCY / 4;
@@ -185,6 +189,8 @@ public class GridWatchService extends Service implements SensorEventListener {
 
 	private void onPowerConnected() {
 		Log.d("GridWatchService", "onPowerConnected called");
+
+		updateLocation();
 
 		GridWatchEvent gwevent = new GridWatchEvent(GridWatchEventType.PLUGGED);
 		mEvents.add(gwevent);
@@ -514,8 +520,32 @@ public class GridWatchService extends Service implements SensorEventListener {
 
 
 
-	/*
-	public void startRecording() {
+	private void updateLocation () {
+
+		for (String s : mLocationManager.getAllProviders()) {
+			Log.d("GridWatchService", "added location upate for " + s);
+			mLocationManager.requestLocationUpdates(s, LOCATION_WAIT_TIME, 0.0f, new LocationListener() {
+
+				@Override
+				public void onLocationChanged(Location location) {
+					// Once we get a new location cancel our location updating
+					Log.d("GridWatchService", "got new location " + location);
+					mLocationManager.removeUpdates(this);
+				}
+
+				@Override
+				public void onProviderDisabled(String provider) { }
+
+				@Override
+				public void onProviderEnabled(String provider) { }
+
+				@Override
+				public void onStatusChanged(String provider, int status, Bundle extras) { }
+			});
+		}
+	}
+
+	/*public void startRecording() {
 	    gpsTimer.cancel();
 	    gpsTimer = new Timer();
 	    long checkInterval = getGPSCheckMilliSecsFromPrefs();
