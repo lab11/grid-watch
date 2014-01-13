@@ -5,16 +5,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -44,7 +41,7 @@ public class GridWatch extends Activity {
 	private GridWatchLogger mGWLogger;
 
 
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB) @Override
+	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
@@ -61,8 +58,8 @@ public class GridWatch extends Activity {
 		mLogView = inflater.inflate(R.layout.log, null);
 
 		// Register that we want to receive notices from the service.
-		LocalBroadcastManager.getInstance(this).registerReceiver(mServiceMessageReceiver,
-				new IntentFilter(INTENT_NAME));
+	//	LocalBroadcastManager.getInstance(this).registerReceiver(mServiceMessageReceiver,
+	//			new IntentFilter(INTENT_NAME));
 
 		mGWLogger = new GridWatchLogger();
 
@@ -81,13 +78,15 @@ public class GridWatch extends Activity {
 
 	//	LocalBroadcastManager.getInstance(this).registerReceiver(mServiceMessageReceiver,
 	//			new IntentFilter(INTENT_NAME));
+		registerReceiver(mServiceMessageReceiver, new IntentFilter(INTENT_NAME));
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
 
-	//	LocalBroadcastManager.getInstance(this).unregisterReceiver(mServiceMessageReceiver);
+		//LocalBroadcastManager.getInstance(this).unregisterReceiver(mServiceMessageReceiver);
+		unregisterReceiver(mServiceMessageReceiver);
 	}
 
 	@Override
@@ -104,7 +103,7 @@ public class GridWatch extends Activity {
 			//mPendingCount.setText(" "+Integer.toString(intent.getIntExtra("pending_queue_len", 0)));
 
 			// Update the front display
-			if (intent.getStringExtra(INTENT_EXTRA_EVENT_TYPE) == "event_post") {
+			if (intent.getStringExtra(INTENT_EXTRA_EVENT_TYPE).equals("event_post")) {
 
 				Hashtable<String, String> result = new Hashtable<String, String>();
 
@@ -122,7 +121,8 @@ public class GridWatch extends Activity {
 				display += mDateFormat.format(new Date(Long.valueOf(result.get("time")))) + "\n";
 				if (result.get("event_type").equals("unplugged")) {
 					display += "movement: " + result.get("moved") + "\n";
-					display += "60 hz: " + result.get("sixty_hz") + "\n";
+					//display += "60 hz: " + result.get("sixty_hz") + "\n";
+					display += "60 hz: not implemented" + "\n";
 				}
 
 				((TextView) mMainView.findViewById(R.id.txt_status)).setText(display);
@@ -131,7 +131,7 @@ public class GridWatch extends Activity {
 		}
 	};
 
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB) @Override
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
 		switch (item.getItemId()) {
@@ -211,35 +211,4 @@ public class GridWatch extends Activity {
 		}
 	};
 
-
-	/*
-	@TargetApi(Build.VERSION_CODES.GINGERBREAD) public void setAlertServer(View view) {
-		String alertServer = mAlertServerEditText.getText().toString();
-		if (!URLUtil.isValidUrl(alertServer)) {
-			Toast.makeText(this, "Invalid URL", Toast.LENGTH_SHORT).show();
-			return;
-		}
-
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putString("alert_server", alertServer);
-		editor.apply();
-
-		mAlertServerEditText.setText("");
-		mAlertServerEditText.setHint(alertServer);
-		Toast.makeText(this, "Alert Server Updated", Toast.LENGTH_SHORT).show();
-	}*/
-	/*
-	@TargetApi(Build.VERSION_CODES.GINGERBREAD) public void resetAlertServer(View view) {
-		String alertServer = getString(R.string.default_alert_server);
-
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putString("alert_server", alertServer);
-		editor.apply();
-
-		mAlertServerEditText.setText("");
-		mAlertServerEditText.setHint(alertServer);
-		Toast.makeText(this, "Alert Server Updated", Toast.LENGTH_SHORT).show();
-	}*/
 }

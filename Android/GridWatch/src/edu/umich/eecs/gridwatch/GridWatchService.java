@@ -44,21 +44,28 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.Settings.Secure;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
 public class GridWatchService extends Service implements SensorEventListener {
 
+	// Constants for transmitting data to the main thred
 	private final static String INTENT_NAME = "GridWatch-update-event";
 	private final static String INTENT_EXTRA_EVENT_TYPE = "event_type";
 	private final static String INTENT_EXTRA_EVENT_INFO = "event_info";
 	private final static String INTENT_EXTRA_EVENT_TIME = "event_time";
 
+	// How long to wait before forcing the phone to update locations.
+	// This is not set to immediate in case another app does the update
+	// first and we can just use that.
 	private final static long LOCATION_WAIT_TIME = 300000l;
 
+	// How long to wait between checks of the event list
+	// for events that are finished and can be sent to the
+	// server.
+	private final static int EVENT_PROCESS_TIMER_PERIOD = 1000;
+
 	private final static int SAMPLE_FREQUENCY = 44100;
-	//private final static int AUDIO_SAMPLES_TO_READ = SAMPLE_FREQUENCY / 4;
 
 	// List of all of the active events we are currently handling
 	private ArrayList<GridWatchEvent> mEvents = new ArrayList<GridWatchEvent>();
@@ -69,8 +76,6 @@ public class GridWatchService extends Service implements SensorEventListener {
 
 	// Tool to get the location
 	private LocationManager mLocationManager;
-
-	private boolean mDockCar = false;
 
 	// Timer that is fired to check if each event is ready to be sent to
 	// the server.
@@ -83,6 +88,7 @@ public class GridWatchService extends Service implements SensorEventListener {
 	// Tool for getting a pretty date
 	private DateFormat mDateFormat = DateFormat.getDateTimeInstance();
 
+	// Object that handles writing and retreiving log messages
 	private GridWatchLogger mGWLogger;
 
 
@@ -92,28 +98,26 @@ public class GridWatchService extends Service implements SensorEventListener {
 		mGWLogger = new GridWatchLogger();
 		mGWLogger.log(mDateFormat.format(new Date()), "created", null);
 
+		// Receive a callback when Internet connectivity is restored
 		IntentFilter cfilter = new IntentFilter();
 		cfilter.addAction(android.net.ConnectivityManager.CONNECTIVITY_ACTION);
 		this.registerReceiver(mConnectionListenerReceiver, cfilter);
 
+		// Receive callbacks when the power state changes (plugged in, etc.)
 		IntentFilter ifilter = new IntentFilter();
 		ifilter.addAction(Intent.ACTION_POWER_CONNECTED);
 		ifilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
 		ifilter.addAction(Intent.ACTION_DOCK_EVENT);
 		this.registerReceiver(mPowerActionReceiver, ifilter);
 
+		// Get references to the accelerometer api
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		mAccel = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
+		// Get a reference to the location manager
 		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-		Log.d("GridWatchService", "service started");
 		Toast.makeText(this, "GridWatch started", Toast.LENGTH_SHORT).show();
-
-	//	Intent lIntent = new Intent(INTENT_NAME);
-	//	lIntent.putExtra(INTENT_EXTRA_EVENT_TYPE, "created");
-	//	lIntent.putExtra(INTENT_EXTRA_EVENT_TIME, mDateFormat.format(new Date()));
-	//	broadcastIntent(lIntent);
 	}
 
 	@Override
@@ -128,13 +132,6 @@ public class GridWatchService extends Service implements SensorEventListener {
 		this.unregisterReceiver(mPowerActionReceiver);
 		this.unregisterReceiver(mConnectionListenerReceiver);
 	}
-
-	// Call to update the UI thread with data from this service
-	private void broadcastIntent (Intent lIntent) {
-		LocalBroadcastManager.getInstance(this).sendBroadcast(lIntent);
-	}
-
-
 
 	// This is the old onStart method that will be called on the pre-2.0
 	// platform.  On 2.0 or later we override onStartCommand() so this
@@ -186,46 +183,61 @@ public class GridWatchService extends Service implements SensorEventListener {
 		}
 	};
 
+	// Call to update the UI thread with data from this service
+	private void broadcastIntent (Intent lIntent) {
+		//LocalBroadcastManager.getInstance(this).sendBroadcast(lIntent)
+		lIntent.setPackage("edu.umich.eecs.gridwatch");
+		sendBroadcast(lIntent);
+	}
 
 	private void onPowerConnected() {
-		Log.d("GridWatchService", "onPowerConnected called");
 
+		// Take the opportunity to try to update our location. Since we now have
+		// power (the device was just plugged in), getting a GPS lock shouldn't
+		// be an issue. Also, since the phone won't move between now and when
+		// it is unplugged (given how power cables work) the location should
+		// be valid when the device is unplugged.
 		updateLocation();
 
+		// Create the plug event
 		GridWatchEvent gwevent = new GridWatchEvent(GridWatchEventType.PLUGGED);
 		mEvents.add(gwevent);
 
+		// This one we don't need any sensors so go ahead and process the event
+		// list because we can send the plugged event.
 		processEvents();
 	}
 
 	private void onPowerDisconnected() {
-		Log.d("GridWatchService", "onPowerDisconnected called");
 
+		// Create the unplugged event
 		GridWatchEvent gwevent = new GridWatchEvent(GridWatchEventType.UNPLUGGED);
 		mEvents.add(gwevent);
 
 		// Start the accelerometer getting samples
 		mSensorManager.registerListener(this, mAccel, SensorManager.SENSOR_DELAY_NORMAL);
 
+		// Sample the microphone
 		Thread audioThread = new Thread(new GridWatchEventThread(gwevent));
 		audioThread.start();
 
+		// Make sure the event queue is processed until it is empty
 		startEventProcessTimer();
 	}
 
 	private void onDockEvent(Intent intent) {
 		int dockState = intent.getIntExtra(Intent.EXTRA_DOCK_STATE, -1);
-		mDockCar = dockState == Intent.EXTRA_DOCK_STATE_CAR;
-		Log.d("GridWatchService", "mDockCar set to " + mDockCar);
+		boolean dockCar = dockState == Intent.EXTRA_DOCK_STATE_CAR;
+		Log.d("GridWatchService", "mDockCar set to " + dockCar);
 	}
 
+	// Iterate over the list of pending events and determine if any
+	// should be transmitted to the server
 	private void processEvents () {
 		boolean done = true;
 
 		for (GridWatchEvent gwevent : mEvents) {
-			boolean ready = gwevent.readyForTransmission();
-
-			if (ready) {
+			if (gwevent.readyForTransmission()) {
 				postEvent(gwevent);
 				mEvents.remove(gwevent);
 			} else {
@@ -234,17 +246,20 @@ public class GridWatchService extends Service implements SensorEventListener {
 		}
 
 		if (!done) {
+			// If there are still events in the queue make sure the
+			// timer fires again.
 			startEventProcessTimer();
 		}
 	}
 
+	// Create a timer to check the events queue when it fires
 	private void startEventProcessTimer () {
 		mEventProcessTimer.schedule(new TimerTask () {
 			@Override
 			public void run () {
 				processEvents();
 			}
-		}, 1000);
+		}, EVENT_PROCESS_TIMER_PERIOD);
 	}
 
 	// This is called when new samples arrive from the accelerometer
@@ -263,12 +278,14 @@ public class GridWatchService extends Service implements SensorEventListener {
 		}
 
 		if (done) {
+			// All events are finished getting acceleromter samples, so go
+			// ahead and stop this listener
 			mSensorManager.unregisterListener(this);
 		}
 
 	}
 
-
+	// This thread handles getting audio data from the microphone
 	class GridWatchEventThread implements Runnable {
 		GridWatchEvent mThisEvent;
 
@@ -283,10 +300,6 @@ public class GridWatchService extends Service implements SensorEventListener {
 			int recBufferSize = AudioRecord.getMinBufferSize(SAMPLE_FREQUENCY,
 					AudioFormat.CHANNEL_IN_MONO,
 					AudioFormat.ENCODING_PCM_16BIT);
-
-		//	if (AUDIO_SAMPLES_TO_READ*3 > recBufferSize) {
-		//		recBufferSize = AUDIO_SAMPLES_TO_READ*3;
-		//	}
 
 			AudioRecord audioRecord = new AudioRecord(MediaRecorder.AudioSource.DEFAULT,
 					SAMPLE_FREQUENCY,
@@ -316,14 +329,15 @@ public class GridWatchService extends Service implements SensorEventListener {
 		// This gets called by the OS
 		@Override
 		protected Void doInBackground(HttpPost... httpposts) {
-			Log.d("GridWatchService", "PostAlertTask start");
+			//Log.d("GridWatchService", "PostAlertTask start");
 
 			HttpClient httpclient = new DefaultHttpClient();
 
 			try {
 				// Execute the HTTP POST request
+				@SuppressWarnings("unused")
 				HttpResponse response = httpclient.execute(httpposts[0]);
-				Log.d("GridWatchService", "POST response: " + response);
+				//Log.d("GridWatchService", "POST response: " + response);
 
 			} catch (ClientProtocolException e) {
 				// TODO Auto-generated catch block
@@ -355,11 +369,11 @@ public class GridWatchService extends Service implements SensorEventListener {
 				while (mAlertQ.size() > 0) {
 					post = mAlertQ.poll();
 					if (post == null) {
-						Log.w("GridWatchService", "Unexpected empty queue?");
 						break;
 					}
+					@SuppressWarnings("unused")
 					HttpResponse response = httpclient.execute(post);
-					Log.d("GridWatchService", "POST response: " + response);
+					//Log.d("GridWatchService", "POST response: " + response);
 				}
 			} catch (ClientProtocolException e) {
 				// TODO Auto-generated catch block
@@ -518,18 +532,15 @@ public class GridWatchService extends Service implements SensorEventListener {
 		// We don't really care about sensor accuracy that much; ignore
 	}
 
-
-
+	// Call to generate listeners that request the phones location.
 	private void updateLocation () {
 
 		for (String s : mLocationManager.getAllProviders()) {
-			Log.d("GridWatchService", "added location upate for " + s);
 			mLocationManager.requestLocationUpdates(s, LOCATION_WAIT_TIME, 0.0f, new LocationListener() {
 
 				@Override
 				public void onLocationChanged(Location location) {
 					// Once we get a new location cancel our location updating
-					Log.d("GridWatchService", "got new location " + location);
 					mLocationManager.removeUpdates(this);
 				}
 
@@ -544,89 +555,5 @@ public class GridWatchService extends Service implements SensorEventListener {
 			});
 		}
 	}
-
-	/*public void startRecording() {
-	    gpsTimer.cancel();
-	    gpsTimer = new Timer();
-	    long checkInterval = getGPSCheckMilliSecsFromPrefs();
-	    long minDistance = getMinDistanceFromPrefs();
-	    // receive updates
-	    LocationManager locationManager = (LocationManager) getApplicationContext()
-	            .getSystemService(Context.LOCATION_SERVICE);
-	    for (String s : locationManager.getAllProviders()) {
-	        locationManager.requestLocationUpdates(s, checkInterval,
-	                minDistance, new LocationListener() {
-
-	                    @Override
-	                    public void onStatusChanged(String provider,
-	                            int status, Bundle extras) {}
-
-	                    @Override
-	                    public void onProviderEnabled(String provider) {}
-
-	                    @Override
-	                    public void onProviderDisabled(String provider) {}
-
-	                    @Override
-	                    public void onLocationChanged(Location location) {
-	                        // if this is a gps location, we can use it
-	                        if (location.getProvider().equals(
-	                                LocationManager.GPS_PROVIDER)) {
-	                            doLocationUpdate(location, true);
-	                        }
-	                    }
-	                });
-	        // //Toast.makeText(this, "GPS Service STARTED",
-	        // Toast.LENGTH_LONG).show();
-	        gps_recorder_running = true;
-	    }
-	    // start the gps receiver thread
-	    gpsTimer.scheduleAtFixedRate(new TimerTask() {
-
-	        @Override
-	        public void run() {
-	            Location location = getBestLocation();
-	            doLocationUpdate(location, false);
-	        }
-	    }, 0, checkInterval);
-	}
-
-	public void doLocationUpdate(Location l, boolean force) {
-	    long minDistance = getMinDistanceFromPrefs();
-	    Log.d(TAG, "update received:" + l);
-	    if (l == null) {
-	        Log.d(TAG, "Empty location");
-	        if (force)
-	            Toast.makeText(this, "Current location not available",
-	                    Toast.LENGTH_SHORT).show();
-	        return;
-	    }
-	    if (lastLocation != null) {
-	        float distance = l.distanceTo(lastLocation);
-	        Log.d(TAG, "Distance to last: " + distance);
-	        if (l.distanceTo(lastLocation) < minDistance && !force) {
-	            Log.d(TAG, "Position didn't change");
-	            return;
-	        }
-	        if (l.getAccuracy() >= lastLocation.getAccuracy()
-	                && l.distanceTo(lastLocation) < l.getAccuracy() && !force) {
-	            Log.d(TAG,
-	                    "Accuracy got worse and we are still "
-	                      + "within the accuracy range.. Not updating");
-	            return;
-	        }
-	        if (l.getTime() <= lastprovidertimestamp && !force) {
-	            Log.d(TAG, "Timestamp not never than last");
-	            return;
-	        }
-	    }
-	    // upload/store your location here
-	}
-
-*/
-
-
-
-
 
 }
