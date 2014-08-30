@@ -19,6 +19,22 @@
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:textColor="@color/BLACK" />
 
+        <Button
+            android:id="@+id/log_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="refreshLog"
+            android:text="@string/refresh"
+            android:textColor="@color/BLACK" />
+
+        <LinearLayout
+            android:id="@+id/log_linear_items"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+        </LinearLayout>
+
     </LinearLayout>
     
 
