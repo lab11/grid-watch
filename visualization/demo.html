@@ -1,0 +1,272 @@
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <script src="http://d3js.org/d3.v2.js"></script>
+   <script
+src="http://inductor.eecs.umich.edu/bower_components/socket.io-client/dist/socket.io.min.js"></script>
+   <script>WEB_SOCKET_SWF_LOCATION='http://inductor.eecs.umich.edu/bower_components/socket.io-client/dist/WebSocketMain.swf'</script>
+
+    </head>
+<body bgcolor="#000000"> 
+
+    <body>
+        <script type="text/javascript">
+
+
+            var on = "green";
+            var off = "red";
+            
+            var svg = d3.select("body")
+                .append("svg")
+                .attr("width", 1000)
+                .attr("height", 1000);
+            
+            var house_list_on = [
+               {'id':1, 'image':'gwpoweron.png'},
+               {'id':2, 'image':'gwspyvspy.png'},
+               {'id':3, 'image':'gwscooby.png'}
+            ]
+            
+            var state = [
+               {'id':1, 'state':'on'}
+            ]
+            
+            var num_report = [
+               {'id':1, 'num':0}
+            ]
+
+            var phone_list = [
+               {'id': 1, 'state': 'on', 'label':'Oct 28, 12:30:00'}, 
+               {'id': 2, 'state': 'on', 'label':'Oct 28, 12:30:00'}, 
+               {'id': 3, 'state': 'on', 'label':'Oct 28, 12:30:00'},
+               {'id': 4, 'state': 'on', 'label':'Oct 28, 12:30:00'},
+               {'id': 5, 'state': 'on', 'label':'Oct 28, 12:30:00'}, 
+               {'id': 6, 'state': 'on', 'label':'Oct 28, 12:30:00'},
+               {'id': 7, 'state': 'on', 'label':'Oct 28, 12:30:00'}, 
+               {'id': 8, 'state': 'on', 'label':'Oct 28, 12:30:00'} 
+            ]
+
+            function testOn() {
+               state[0]['state'] = "on"
+               updateHouse()
+               updateState()
+            }
+            function testOff() {
+               state[0]['state'] = "off"
+               updaeHouse()
+               updateState()
+            }
+
+            function updatePhones() {
+               var phones = svg.selectAll("ellipse").data(phone_list, function(d) {
+return d['id'] })
+                  var enterDiv = phones.enter()
+                  enterDiv.append("ellipse")
+                  .attr("cx", function (d) { return d.id*100 + 40; })
+                  .attr("cy", 550)
+                  .attr("rx", 35)
+                  .attr("stroke", "black")
+                  .attr("stroke-width", 5)
+                  .attr("fill", function (d) { 
+                     if (d.state == 'on') { 
+                         return on 
+                     }
+                     else {
+                         return off
+                     }})
+                  .attr("ry", 35);
+                  
+                  enterDiv.append("text")
+                  .attr("x", function(d) { return (d.id*100 + 40)-2; })
+                  .attr("y", function(d) { return 500 })
+                  .text( function(d) {
+                     return d.id })
+                  .attr("font-family", "sans-serif")
+                  .attr("font-size", "15px")
+                  .attr("fill", "gray")
+                  
+                  enterDiv.append("text")
+                  .attr("x", function(d) { return (d.id*100 + 40)-40; })
+                  .attr("y", function(d) { return 610 })
+                  .text( function(d) {
+                     return d.label })
+                  .attr("font-family", "sans-serif")
+                  .attr("font-size", "10px")
+                  .attr("fill", "gray")
+                  
+                  phones.transition()
+                  .attr("fill", function (d) { 
+                     if (d.state == 'on') { 
+                         return on 
+                     }
+                     else {
+                         return off
+                     }})
+                  .text( function(d) {
+                     return d.label })
+            }   
+
+            function updateState() {
+               var cur_state = svg.selectAll("text.state").data(state, function(d)
+{ return d['id']})
+               cur_state.enter()
+               .append("text")
+               .attr("x", 800)
+               .attr("y", 64)
+               .text(function(d) {return d.state.toUpperCase()})
+               .attr("font-family", "sans-serif")
+               .attr("font-size", "30px")
+               .attr("fill", function (d) { 
+                     if (d.state == 'on') { 
+                         return on 
+                     }
+                     else {
+                         return off
+                     }})
+               
+               cur_state.transition()  
+               .text(function(d) {return d.state.toUpperCase()})
+               .attr("fill", function (d) { 
+                     if (d.state == 'on') { 
+                         return on 
+                     }
+                     else {
+                         return off
+                     }})
+            }
+                
+
+
+            function updateReports() {
+               var reports = svg.selectAll("text.num_report").data(num_report, function(d) {
+return d['id'] })
+               reports.enter()
+               .append("text")
+               .attr("x", 910)
+               .attr("y", 180)
+               .text(function(d) { return d.num }) 
+               .attr("font-family", "sans-serif")
+               .attr("font-size", "20px")
+               .attr("fill", function (d) { 
+                  if (d.num < 5) return "green"
+                  else if (d.num >= 5 && d.num <= 7) return "orange"
+                  else if (d.num >= 8) return "red"
+               })
+
+               reports.transition()
+               .text(function(d) { return d.num})
+               .attr("fill", function (d) { 
+                  if (d.num < 5) return "green"
+                  else if (d.num >= 5 && d.num <= 7) return "orange"
+                  else if (d.num >= 8) return "red"
+               })
+            } 
+
+            function updateHouse() {
+            var imgs = svg.selectAll("img").data([0])
+                imgs.enter()
+                .append("svg:image")
+                .attr("xlink:href", function (d) {
+                     if (state[0]['state'] == 'on') {
+                        var cur_house = Math.floor((Math.random() * 3) + 0);
+                        return "images/".concat(house_list_on[cur_house].image);
+                     } 
+                     else {
+                        return "images/gwpoweroff.png";
+                     }}) 
+                .attr("x", "175")
+                .attr("y", "50")
+                .attr("width", "600")
+                .attr("height", "400");
+              
+                imgs.transition()
+                .attr("xlink:href", function (d) {
+                     if (state[0]['state'] == 'on') {
+                        var cur_house = Math.floor((Math.random() * 3) + 0);
+                        return "images/".concat(house_list_on[cur_house].image);
+                     } 
+                     else {
+                        return "images/gwpoweroff.png";
+                     }}) 
+            }
+            
+            var GW_PID = 'HthZRrHnlC';
+            var s;
+            onload = function() {
+              s = io.connect('inductor.eecs.umich.edu:8082/stream');
+                s.on('connect', function (data) {
+                   s.emit('query', {'profile_id': GW_PID,
+                          'time': 1209600000}
+                   );
+                });
+            }
+
+               svg.append("text")
+               .attr("x", 15)
+               .attr("y", 50)
+               .text( "Grid Watch")
+               .attr("font-family", "sans-serif")
+               .attr("font-size", "40px")
+               .attr("fill", "white")
+
+              svg.append("text")
+               .attr("x", 720)
+               .attr("y", 150)
+               .text("# Reports in Last 30 Seconds:")
+               .attr("font-family", "sans-serif")
+               .attr("font-size", "15px")
+               .attr("fill", "gray")
+              
+               svg.append("text")
+               .attr("x", 720)
+               .attr("y",60)
+               .text("Power is:")
+               .attr("font-family", "sans-serif")
+               .attr("font-size", "15px")
+               .attr("fill", "gray")
+
+              svg.append("svg:image")
+              .attr("xlink:href", "images/lab11.png")
+              .attr("x", "125")
+              .attr("y", "70")
+              .attr("width", "62")
+              .attr("height", "62")
+              
+              svg.append("svg:image")
+              .attr("xlink:href", "images/blockm.png")
+              .attr("x", "15")
+              .attr("y", "60")
+              .attr("width", "80")
+              .attr("height", "80")
+
+/*
+            s.on('data', function (data) {
+               if ('power_on' in data) {
+                  if (!data['power_on']) {
+                        // Detected a possible power outage
+                        L.circle([data['latitude'], data['longitude']], 50, {
+                        color: 'red',
+                        fillColor: '#f03',
+                        fillOpacity: 0.5
+                  }).addTo(map).bindPopup(get_popup(data));
+
+               } else {
+                     L.circle([data['latitude'], data['longitude']], 50, {
+                     color: 'green',
+                     fillColor: '#00ff00',
+                     fillOpacity: 0.5
+                     }).addTo(map).bindPopup(get_popup(data));
+               }
+            }
+         });
+*/
+         function update() {
+         updateState()
+         updateHouse()
+         updatePhones()
+         updateReports()
+         }
+         update()
+        </script>
+    </body>
+</html>
