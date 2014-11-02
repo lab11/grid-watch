@@ -190,16 +190,7 @@ return d['id'] })
                      }}) 
             }
             
-            var GW_PID = 'HthZRrHnlC';
-            var s;
-            onload = function() {
-              s = io.connect('inductor.eecs.umich.edu:8082/stream');
-                s.on('connect', function (data) {
-                   s.emit('query', {'profile_id': GW_PID,
-                          'time': 1209600000}
-                   );
-                });
-            }
+ 
 
                svg.append("text")
                .attr("x", 15)
@@ -239,27 +230,34 @@ return d['id'] })
               .attr("width", "80")
               .attr("height", "80")
 
-/*
-            s.on('data', function (data) {
-               if ('power_on' in data) {
-                  if (!data['power_on']) {
-                        // Detected a possible power outage
-                        L.circle([data['latitude'], data['longitude']], 50, {
-                        color: 'red',
-                        fillColor: '#f03',
-                        fillOpacity: 0.5
-                  }).addTo(map).bindPopup(get_popup(data));
+           var GW_PID = 'HthZRrHnlC';
+            var s;
+            onload = function() {
+              s = io.connect('inductor.eecs.umich.edu:8082/stream');
+                s.on('connect', function (data) {
+                   s.emit('query', {'profile_id': GW_PID,
+                          'time': 0}
+                   );
+                });
+            
 
-               } else {
-                     L.circle([data['latitude'], data['longitude']], 50, {
-                     color: 'green',
-                     fillColor: '#00ff00',
-                     fillOpacity: 0.5
-                     }).addTo(map).bindPopup(get_popup(data));
-               }
-            }
+            s.on('data', function (data) {
+              console.log(data);
+
+              if (data['event_type'] == 'unplugged') {
+                for (i=0; i<8; i++) {
+                  if (phone_list[i]['id'] == (data['phone_id'] - 149)) {
+                    phone_list[i]['state'] = 'off';
+                  }
+                }
+              }
+
+              updatePhones();
+  
+            
          });
-*/
+          }
+
          function update() {
          updateState()
          updateHouse()
