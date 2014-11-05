@@ -3,7 +3,7 @@
         <meta charset="utf-8">
         <script src="http://d3js.org/d3.v2.js"></script>
    <script
-src="http://inductor.eecs.umich.edu/bower_components/socket.io-client/dist/socket.io.min.js"></script>
+   src="http://inductor.eecs.umich.edu/bower_components/socket.io-client/dist/socket.io.min.js"></script>
    <script>WEB_SOCKET_SWF_LOCATION='http://inductor.eecs.umich.edu/bower_components/socket.io-client/dist/WebSocketMain.swf'</script>
 
     </head>
@@ -22,9 +22,10 @@ src="http://inductor.eecs.umich.edu/bower_components/socket.io-client/dist/socke
                 .attr("height", 1000);
             
             var house_list_on = [
-               {'id':1, 'image':'gwpoweron.png'},
-               {'id':2, 'image':'gwspyvspy.png'},
-               {'id':3, 'image':'gwscooby.png'}
+               {'id':1, 'image':'gw_pwron.png'},
+               {'id':2, 'image':'gw_spyvspy.png'},
+               {'id':3, 'image':'gw_scooby.png'},
+               {'id':4, 'image':'gw_cat.png'}
             ]
             
             var state = [
@@ -36,14 +37,14 @@ src="http://inductor.eecs.umich.edu/bower_components/socket.io-client/dist/socke
             ]
 
             var phone_list = [
-               {'id': 1, 'state': 'on', 'label':'Oct 28, 12:30:00'}, 
-               {'id': 2, 'state': 'on', 'label':'Oct 28, 12:30:00'}, 
-               {'id': 3, 'state': 'on', 'label':'Oct 28, 12:30:00'},
-               {'id': 4, 'state': 'on', 'label':'Oct 28, 12:30:00'},
-               {'id': 5, 'state': 'on', 'label':'Oct 28, 12:30:00'}, 
-               {'id': 6, 'state': 'on', 'label':'Oct 28, 12:30:00'},
-               {'id': 7, 'state': 'on', 'label':'Oct 28, 12:30:00'}, 
-               {'id': 8, 'state': 'on', 'label':'Oct 28, 12:30:00'} 
+               {'id': 1, 'state': 'on', 'label':''}, 
+               {'id': 2, 'state': 'on', 'label':''}, 
+               {'id': 3, 'state': 'on', 'label':''},
+               {'id': 4, 'state': 'on', 'label':''},
+               {'id': 5, 'state': 'on', 'label':''}, 
+               {'id': 6, 'state': 'on', 'label':''},
+               {'id': 7, 'state': 'on', 'label':''}, 
+               {'id': 8, 'state': 'on', 'label':''} 
             ]
 
             function testOn() {
@@ -53,14 +54,14 @@ src="http://inductor.eecs.umich.edu/bower_components/socket.io-client/dist/socke
             }
             function testOff() {
                state[0]['state'] = "off"
-               updaeHouse()
+               updateHouse()
                updateState()
             }
 
             function updatePhones() {
                var phones = svg.selectAll("ellipse").data(phone_list, function(d) {
 return d['id'] })
-                  var enterDiv = phones.enter()
+                var enterDiv = phones.enter()
                   enterDiv.append("ellipse")
                   .attr("cx", function (d) { return d.id*100 + 40; })
                   .attr("cy", 550)
@@ -102,6 +103,7 @@ return d['id'] })
                      else {
                          return off
                      }})
+                  enterDiv.append("text")
                   .text( function(d) {
                      return d.label })
             }   
@@ -123,7 +125,8 @@ return d['id'] })
                      else {
                          return off
                      }})
-               
+              
+ 
                cur_state.transition()  
                .text(function(d) {return d.state.toUpperCase()})
                .attr("fill", function (d) { 
@@ -168,32 +171,63 @@ return d['id'] })
                 .append("svg:image")
                 .attr("xlink:href", function (d) {
                      if (state[0]['state'] == 'on') {
-                        var cur_house = Math.floor((Math.random() * 3) + 0);
+                        var cur_house = Math.floor((Math.random() * 4) + 0);
                         return "images/".concat(house_list_on[cur_house].image);
                      } 
                      else {
-                        return "images/gwpoweroff.png";
+                        return "images/gw_poweroff.png";
                      }}) 
                 .attr("x", "175")
-                .attr("y", "50")
+                .attr("y", "100")
                 .attr("width", "600")
                 .attr("height", "400");
-              
+                
                 imgs.transition()
                 .attr("xlink:href", function (d) {
                      if (state[0]['state'] == 'on') {
-                        var cur_house = Math.floor((Math.random() * 3) + 0);
+                        var cur_house = Math.floor((Math.random() * 4) + 0);
                         return "images/".concat(house_list_on[cur_house].image);
                      } 
                      else {
-                        return "images/gwpoweroff.png";
+                        return "images/gw_poweroff.png";
                      }}) 
+
+               
+               var cur_state = svg.selectAll(".state").data(state, function(d)
+{ return d['id']})
+               cur_state.enter()
+               .append("text")
+               .attr("x", 800)
+               .attr("y", 64)
+               .attr("font-family", "sans-serif")
+               .attr("font-size", "30px")
+               .attr("fill", function (d) { 
+                     if (d.state == 'on') {
+                         svg.selectAll(".state").text("ON") 
+                         return on 
+                     }
+                     else {
+                         svg.selectAll(".state").text("OFF") 
+                         return off
+                     }})
+                cur_state.transition()
+                .attr("fill", function (d) { 
+                     if (d.state == 'on') {
+                         svg.selectAll(".state").text("ON") 
+                         return on 
+                     }
+                     else {
+                         svg.selectAll(".state").text("OFF") 
+                         return off
+                     }
+                     })
+              
             }
             
  
 
                svg.append("text")
-               .attr("x", 15)
+               .attr("x", 10)
                .attr("y", 50)
                .text( "Grid Watch")
                .attr("font-family", "sans-serif")
@@ -219,19 +253,39 @@ return d['id'] })
               svg.append("svg:image")
               .attr("xlink:href", "images/lab11.png")
               .attr("x", "125")
-              .attr("y", "70")
-              .attr("width", "62")
-              .attr("height", "62")
+              .attr("y", "80")
+              .attr("width", "42")
+              .attr("height", "42")
               
               svg.append("svg:image")
               .attr("xlink:href", "images/blockm.png")
+              .attr("x", "25")
+              .attr("y", "75")
+              .attr("width", "50")
+              .attr("height", "50")
+              
+              svg.append("svg:image")
+              .attr("xlink:href", "images/cal.png")
               .attr("x", "15")
-              .attr("y", "60")
+              .attr("y", "130")
+              .attr("width", "60")
+              .attr("height", "60")
+              
+               svg.append("svg:image")
+              .attr("xlink:href", "images/tier.png")
+              .attr("x", "100")
+              .attr("y", "120")
               .attr("width", "80")
               .attr("height", "80")
 
+               svg.append("svg:image")
+              .attr("xlink:href", "images/usaid.png")
+              .attr("x", "20")
+              .attr("y", "150")
+              .attr("width", "140")
+              .attr("height", "140")
            var GW_PID = 'HthZRrHnlC';
-            var s;
+           var s;
             onload = function() {
               s = io.connect('inductor.eecs.umich.edu:8082/stream');
                 s.on('connect', function (data) {
@@ -239,22 +293,50 @@ return d['id'] })
                           'time': 0}
                    );
                 });
-            
 
-            s.on('data', function (data) {
+              var global_cnt = 0
+              s.on('data', function (data) {
               console.log(data);
+              var currentdate = new Date(); 
+              var datetime = currentdate.getDate() + "/"
+                + (currentdate.getMonth()+1)  + "/" 
+                + currentdate.getFullYear() + " @ "  
+                + currentdate.getHours() + ":"  
+                + currentdate.getMinutes() + ":" 
+                + currentdate.getSeconds();
 
               if (data['event_type'] == 'unplugged') {
                 for (i=0; i<8; i++) {
                   if (phone_list[i]['id'] == (data['phone_id'] - 149)) {
                     phone_list[i]['state'] = 'off';
+                    phone_list[i]['label'] = datetime
+                    global_cnt++
+                  }
+                }
+              } 
+              if (data['event_type'] == 'plugged') {
+                for (i=0; i<8; i++) {
+                  if (phone_list[i]['id'] == (data['phone_id'] - 149)) {
+                    phone_list[i]['state'] = 'on';
+                    phone_list[i]['label'] = datetime
+                    global_cnt--
                   }
                 }
               }
-
+             console.log(Math.abs(global_cnt)) 
+             if (Math.abs(global_cnt) > 6) {
+                 console.log("off")
+                 state[0]['state'] = "off"
+              } else {
+                 console.log("on")
+                 state[0]['state'] = "on"
+              }
+              if (data['event_type'] != 'wd') {
+              updateHouse();
               updatePhones();
-  
-            
+              //updateState();
+              }
+    
          });
           }
 
