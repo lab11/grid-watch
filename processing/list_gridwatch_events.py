@@ -20,7 +20,7 @@ SOCKETIO_PORT      = 8082
 SOCKETIO_NAMESPACE = 'stream'
 
 query = {'profile_id': 'HthZRrHnlC',
-         'time': 30000}
+         'time': 0}
 
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -43,6 +43,7 @@ class stream_receiver (sioc.BaseNamespace):
       if (pkt['event_type'] != 'wd'):
         to_write['id'] = pkt['phone_id'] 
         to_write['time'] = pkt['time']
+        print to_write
         #msTime = pkt['time'] / 1000
         #to_write['time'] = datetime.datetime.fromtimestamp(msTime).strftime('%Y-%m-%d %H:%M:%S')
         with open('gw_dump.csv', 'ab') as f:  # Just use 'w' mode in 3.x

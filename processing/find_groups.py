@@ -6,11 +6,14 @@ class Event:
          self.eventType = eventType
 
 
-import csv, math
+import csv, math,datetime,time,urllib2, sched, json
+from httplib2 import Http
 
 group_size = 6 #reporting phones
-time_thresh = 30 #seconds close to each other
-cnt = 0
+time_thresh = 3000000 #mseconds thresh from min to max time of event
+cnt = 0 #phone array cnt
+sys_cnt = 0 #system cnt
+offset = 300 #for range in seconds
 
 phones = [{'id': 150, 'time': -1, 'state': 0},
           {'id': 151, 'time': -1, 'state': 0},
@@ -22,12 +25,23 @@ phones = [{'id': 150, 'time': -1, 'state': 0},
           {'id': 157, 'time': -1, 'state': 0}]
 
 events = []
+s = sched.scheduler(time.time, time.sleep)
+h = Http()
 
 def sum_phones():
    global cnt 
    cnt = 0
    for phone in phones:
       cnt += phone['state']
+
+def send_post(msg):
+   global h
+   print "sending " + msg
+   url = "http://inductor.eecs.umich.edu:8081/jJZ0N2eKmc"
+   data = dict(state_bool=msg)
+   req = urllib2.Request(url)
+   req.add_header('Content-Type', 'application/json')
+   res = urllib2.urlopen(req, json.dumps(data))
 
 def check_time(direction):
    res = [False,99999999999999,-1]
@@ -38,11 +52,23 @@ def check_time(direction):
            res[1] = time
         elif (time > int(res[2])):
            res[2] = time
-   if ((int(res[2]) - int(res[1])) < 500000):
+   if ((int(res[2]) - int(res[1])) < time_thresh):
      res[0] = True
    return res
 
-with open('gw_dump.csv', 'rb') as csvfile:
+def inRange(report_time):
+  global offset 
+  cur_time = int(datetime.datetime.now().strftime('%s'))  
+  report_time = int(report_time)/1000
+  return int(report_time) - int(offset) <= int(cur_time) <= int(report_time) + int(offset)
+
+def run(sc):
+ global sys_cnt,events,phones
+ print sys_cnt
+ sys_cnt += 1
+ final_state = ''
+ with open('gw_dump.csv', 'rb') as csvfile:
+   cur_events = []
    reader = csv.reader(csvfile, delimiter=",")
    for row in reader:
       for phone in phones:
@@ -51,23 +77,20 @@ with open('gw_dump.csv', 'rb') as csvfile:
            phone['time'] = row[0];
            break
       sum_phones()
-      #print cnt
       if (cnt >= group_size or cnt <= -group_size):
          res = check_time(math.copysign(1, cnt))
-         if (res[0] == True):
-           event_type = -1
+         if (inRange(row[0])):
+          if (res[0] == True):
+           final_state = "unplugged"
            if (cnt < 0):
-               event_type = 1
-           event = Event(res[1], res[2], event_type)
-           events.append(event)
+               final_state = "plugged"
+      else:
+         final_state = "unknown"
+ #res = check_time(math.copysign(1, cnt))
+ #print "start time: " + str(res[1])
+ send_post(final_state)
+ sc.enter(1, 1, run, (sc,))
+         
+s.enter(1, 1, run, (s,))
+s.run()
 
-
-events = list(set(events))
-print str(len(events)) + " events found"
-
-with open('gw_events.csv', 'wb') as csvfile:
-   writer = csv.writer(csvfile, delimiter=",")
-   for event in events:
-      writer.writerow([event.startTime, event.endTime, event.eventType])
-
-      
