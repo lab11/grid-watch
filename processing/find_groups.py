@@ -15,6 +15,9 @@ cnt = 0 #phone array cnt
 sys_cnt = 0 #system cnt
 offset = 300 #for range in seconds
 
+#forever = True
+forever = False
+
 phones = [{'id': 150, 'time': -1, 'state': 0},
           {'id': 151, 'time': -1, 'state': 0},
           {'id': 152, 'time': -1, 'state': 0},
@@ -36,12 +39,15 @@ def sum_phones():
 
 def send_post(msg):
    global h
-   print "sending " + msg
-   url = "http://inductor.eecs.umich.edu:8081/jJZ0N2eKmc"
-   data = dict(state_bool=msg)
-   req = urllib2.Request(url)
-   req.add_header('Content-Type', 'application/json')
-   res = urllib2.urlopen(req, json.dumps(data))
+   try:
+     print "sending " + msg
+     url = "http://inductor.eecs.umich.edu:8081/jJZ0N2eKmc"
+     data = dict(state_bool=msg)
+     req = urllib2.Request(url)
+     req.add_header('Content-Type', 'application/json')
+     res = urllib2.urlopen(req, json.dumps(data))
+   except:
+     print "ERROR POSTING... SKIPPING REPORT"
 
 def check_time(direction):
    res = [False,99999999999999,-1]
@@ -60,10 +66,11 @@ def inRange(report_time):
   global offset 
   cur_time = int(datetime.datetime.now().strftime('%s'))  
   report_time = int(report_time)/1000
-  return int(report_time) - int(offset) <= int(cur_time) <= int(report_time) + int(offset)
+  return True
+  #return int(report_time) - int(offset) <= int(cur_time) <= int(report_time) + int(offset)
 
 def run(sc):
- global sys_cnt,events,phones
+ global sys_cnt,events,phones,forever
  print sys_cnt
  sys_cnt += 1
  final_state = ''
@@ -86,10 +93,18 @@ def run(sc):
                final_state = "plugged"
       else:
          final_state = "unknown"
- #res = check_time(math.copysign(1, cnt))
- #print "start time: " + str(res[1])
- send_post(final_state)
- sc.enter(1, 1, run, (sc,))
+      to_write = {};
+      to_write['time'] = row[0];
+      to_write['event_type'] = final_state
+      if (forever == False):
+       with open('gw_events.csv', 'ab') as f: 
+         w = csv.DictWriter(f, to_write.keys())
+         w.writerow(to_write) 
+   #res = check_time(math.copysign(1, cnt))
+   #print "start time: " + str(res[1])
+   if (forever == True):
+     send_post(final_state)
+     sc.enter(1, 1, run, (sc,))
          
 s.enter(1, 1, run, (s,))
 s.run()

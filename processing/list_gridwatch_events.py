@@ -19,8 +19,15 @@ SOCKETIO_HOST      = 'inductor.eecs.umich.edu'
 SOCKETIO_PORT      = 8082
 SOCKETIO_NAMESPACE = 'stream'
 
-query = {'profile_id': 'HthZRrHnlC',
-         'time': 0}
+forever = False 
+
+if (forever == False):
+ query = {'profile_id': 'HthZRrHnlC',
+         'time': 1000000000000}
+
+if (forever == True):
+ query = {'profile_id': 'HthZRrHnlC',
+         'time': 100}
 
 pp = pprint.PrettyPrinter(indent=4)
 
