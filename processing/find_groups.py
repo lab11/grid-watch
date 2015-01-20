@@ -41,7 +41,7 @@ def send_post(msg):
    global h
    try:
      print "sending " + msg
-     url = "http://inductor.eecs.umich.edu:8081/jJZ0N2eKmc"
+     url = "http://gatd.eecs.umich.edu:8081/jJZ0N2eKmc"
      data = dict(state_bool=msg)
      req = urllib2.Request(url)
      req.add_header('Content-Type', 'application/json')
