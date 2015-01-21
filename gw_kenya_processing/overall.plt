@@ -3,7 +3,7 @@ set size square
 set output "overall.eps"
 
 set style line 1 lt 4  ps 2 pt 7 lw 5 lc rgb "#E66101"
-set style line 2 lt 1  ps 4 pt 2 lw 1 lc rgb "#FDB863"
+set style line 2 lt 1  ps 2 pt 7 lw 1 lc rgb "#FDB863"
 
 set border 0
 set grid lw 1 lt 1 lc rgb "#bbbbbb"
