@@ -32,7 +32,7 @@ od = collections.OrderedDict(sorted(events.items()))
 unique_id = 0
 ids = {}
 print "time, translated_id, translated_type, human time"    
-cur_type = -1
+cur_type = {}
 for timestep, value in od.items():
    if (value.items()[0][1]!='wd'):
     conv_type = -1
@@ -42,29 +42,40 @@ for timestep, value in od.items():
     cur_id = -1
     if str(value.items()[1][1]) in ids:
       cur_id = ids[value.items()[1][1]]
-    if (value.items()[0][1]=='unplugged' and cur_type != 0):
+    if (value.items()[0][1]=='unplugged'):
       if str(value.items()[1][1]) not in ids:
-         #print "ADDING NEW ID: " + str(unique_id) + " for: " + value.items()[1][1]
          unique_id = unique_id + 1
          ids[value.items()[1][1]] = unique_id
          cur_id = unique_id
-      conv_type = 0
-      cur_type = 0
-      op_conv_type = 1 
-      print str(op_timestep) + "," + str(cur_id) + "," + str(op_conv_type) + ", \"" + value.items()[2][1] + "\""
-      print str(timestep) + "," + str(cur_id) + "," + str(conv_type) + ", \"" + value.items()[2][1] +"\"" #+ "," + value.items()[1][1] + "," + value.items()[0][1]
-    elif (value.items()[0][1]=='plugged' and cur_type != 1):
+      if str(value.items()[1][1]) not in cur_type:
+         conv_type = 0
+         cur_type[str(value.items()[1][1])] = 0
+         op_conv_type = 1 
+         print str(op_timestep) + "," + str(cur_id) + "," + str(op_conv_type) + ", \"" + value.items()[2][1] + "\""
+         print str(timestep) + "," + str(cur_id) + "," + str(conv_type) + ", \"" + value.items()[2][1] +"\"" #+ "," + value.items()[1][1] + "," + value.items()[0][1]
+      elif (cur_type[str(value.items()[1][1])] != 0):
+         conv_type = 0
+         cur_type[str(value.items()[1][1])] = 0
+         op_conv_type = 1 
+         print str(op_timestep) + "," + str(cur_id) + "," + str(op_conv_type) + ", \"" + value.items()[2][1] + "\""
+         print str(timestep) + "," + str(cur_id) + "," + str(conv_type) + ", \"" + value.items()[2][1] +"\"" #+ "," + value.items()[1][1] + "," + value.items()[0][1]
+    elif (value.items()[0][1]=='plugged'):
       if str(value.items()[1][1]) not in ids:
-         #print "ADDING NEW ID: " + str(unique_id) + " for: " + value.items()[1][1]
          unique_id = unique_id + 1
          ids[value.items()[1][1]] = unique_id
          cur_id = unique_id
-      conv_type = 1
-      cur_type = 1
-      op_conv_type = 0 
-      #print "HIT PLUGGED"
-      print str(op_timestep) + "," + str(cur_id) + "," + str(op_conv_type) + ", \"" + value.items()[2][1] + "\""
-      print str(timestep) + "," + str(cur_id) + "," + str(conv_type) + ", \"" + value.items()[2][1] +"\"" #+ "," + value.items()[1][1] + "," + value.items()[0][1]
+      if str(value.items()[1][1]) not in cur_type:
+         conv_type = 1
+         cur_type[str(value.items()[1][1])] = 1
+         op_conv_type = 0 
+         print str(op_timestep) + "," + str(cur_id) + "," + str(op_conv_type) + ", \"" + value.items()[2][1] + "\""
+         print str(timestep) + "," + str(cur_id) + "," + str(conv_type) + ", \"" + value.items()[2][1] +"\"" #+ "," + value.items()[1][1] + "," + value.items()[0][1]
+      elif (cur_type[str(value.items()[1][1])] != 1):
+         conv_type = 1
+         cur_type[str(value.items()[1][1])] = 1
+         op_conv_type = 0 
+         print str(op_timestep) + "," + str(cur_id) + "," + str(op_conv_type) + ", \"" + value.items()[2][1] + "\""
+         print str(timestep) + "," + str(cur_id) + "," + str(conv_type) + ", \"" + value.items()[2][1] +"\"" #+ "," + value.items()[1][1] + "," + value.items()[0][1]
 
 step_size = 120 #seconds +- from new report
 cluster_size = 3
