@@ -39,25 +39,27 @@ for timestep, value in od.items():
     op_conv_type = -1
     op_timestep = int(timestep) - 1
     #print "STEP"
-    if str(value.items()[1][1]) not in ids:
-      #print "ADDING NEW ID: " + str(unique_id) + " for: " + value.items()[1][1]
-      unique_id = unique_id + 1
-      ids[value.items()[1][1]] = unique_id
     if (value.items()[0][1]=='unplugged' and cur_type != 0):
-         conv_type = 0
-         cur_type = 0
-         op_conv_type = 1 
-         #print "HIT UNPLUGGED!"
-         
-         print str(op_timestep) + "," + str(unique_id) + "," + str(op_conv_type) + ", \"" + value.items()[2][1] + "\""
-         print str(timestep) + "," + str(unique_id) + "," + str(conv_type) + ", \"" + value.items()[2][1] +"\"" #+ "," + value.items()[1][1] + "," + value.items()[0][1]
+      if str(value.items()[1][1]) not in ids:
+         print "ADDING NEW ID: " + str(unique_id) + " for: " + value.items()[1][1]
+         unique_id = unique_id + 1
+         ids[value.items()[1][1]] = unique_id
+      conv_type = 0
+      cur_type = 0
+      op_conv_type = 1 
+      #print str(op_timestep) + "," + str(unique_id) + "," + str(op_conv_type) + ", \"" + value.items()[2][1] + "\""
+      #print str(timestep) + "," + str(unique_id) + "," + str(conv_type) + ", \"" + value.items()[2][1] +"\"" #+ "," + value.items()[1][1] + "," + value.items()[0][1]
     elif (value.items()[0][1]=='plugged' and cur_type != 1):
-         conv_type = 1
-         cur_type = 1
-         op_conv_type = 0 
-         #print "HIT PLUGGED"
-         print str(op_timestep) + "," + str(unique_id) + "," + str(op_conv_type) + ", \"" + value.items()[2][1] + "\""
-         print str(timestep) + "," + str(unique_id) + "," + str(conv_type) + ", \"" + value.items()[2][1] +"\"" #+ "," + value.items()[1][1] + "," + value.items()[0][1]
+      if str(value.items()[1][1]) not in ids:
+         print "ADDING NEW ID: " + str(unique_id) + " for: " + value.items()[1][1]
+         unique_id = unique_id + 1
+         ids[value.items()[1][1]] = unique_id
+      conv_type = 1
+      cur_type = 1
+      op_conv_type = 0 
+      #print "HIT PLUGGED"
+      #print str(op_timestep) + "," + str(unique_id) + "," + str(op_conv_type) + ", \"" + value.items()[2][1] + "\""
+      #print str(timestep) + "," + str(unique_id) + "," + str(conv_type) + ", \"" + value.items()[2][1] +"\"" #+ "," + value.items()[1][1] + "," + value.items()[0][1]
    if str(value.items()[1][1]) in ids:
       cur_id = ids[value.items()[1][1]]
 
