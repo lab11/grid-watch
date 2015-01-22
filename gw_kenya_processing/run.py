@@ -21,7 +21,8 @@ with open('events.csv', 'rb') as csvfile:
                date_object = datetime.strptime(data, '%b %d, %Y %H:%M:%S %p')              
                date_object.replace(tzinfo=tz1)
                date_object = date_object.strftime('%s')
-               row_struct['time'] = data
+               newstr = data.replace(",", " ")
+               row_struct['time'] = newstr
             if i == 17: #id
                row_struct['id'] = data
                events[date_object] = row_struct
@@ -30,13 +31,14 @@ with open('events.csv', 'rb') as csvfile:
 od = collections.OrderedDict(sorted(events.items()))
 unique_id = 0
 ids = {}
-print "time, translated_id, translated_type, reported_id, reported_type"    
+print "time, translated_id, translated_type, human time"    
 cur_type = -1
 for timestep, value in od.items():
    if (value.items()[0][1]!='wd'):
     conv_type = -1
     op_conv_type = -1
     op_timestep = int(timestep) - 1
+    #print "STEP"
     if str(value.items()[1][1]) not in ids:
       #print "ADDING NEW ID: " + str(unique_id) + " for: " + value.items()[1][1]
       unique_id = unique_id + 1
@@ -45,14 +47,17 @@ for timestep, value in od.items():
          conv_type = 0
          cur_type = 0
          op_conv_type = 1 
-         print str(op_timestep) + "," + str(unique_id) + "," + str(op_conv_type) + "," + value.items()[2][1]
-         print str(timestep) + "," + str(unique_id) + "," + str(conv_type) + "," + value.items()[2][1]#+ "," + value.items()[1][1] + "," + value.items()[0][1]
+         #print "HIT UNPLUGGED!"
+         
+         print str(op_timestep) + "," + str(unique_id) + "," + str(op_conv_type) + ", \"" + value.items()[2][1] + "\""
+         print str(timestep) + "," + str(unique_id) + "," + str(conv_type) + ", \"" + value.items()[2][1] +"\"" #+ "," + value.items()[1][1] + "," + value.items()[0][1]
     elif (value.items()[0][1]=='plugged' and cur_type != 1):
          conv_type = 1
          cur_type = 1
          op_conv_type = 0 
-         print str(op_timestep) + "," + str(unique_id) + "," + str(op_conv_type) + "," + value.items()[2][1]
-         print str(timestep) + "," + str(unique_id) + "," + str(conv_type) + "," + value.items()[2][1]#+ "," + value.items()[1][1] + "," + value.items()[0][1]
+         #print "HIT PLUGGED"
+         print str(op_timestep) + "," + str(unique_id) + "," + str(op_conv_type) + ", \"" + value.items()[2][1] + "\""
+         print str(timestep) + "," + str(unique_id) + "," + str(conv_type) + ", \"" + value.items()[2][1] +"\"" #+ "," + value.items()[1][1] + "," + value.items()[0][1]
    if str(value.items()[1][1]) in ids:
       cur_id = ids[value.items()[1][1]]
 
