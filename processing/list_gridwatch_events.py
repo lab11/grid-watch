@@ -19,7 +19,7 @@ SOCKETIO_HOST      = 'gatd.eecs.umich.edu'
 SOCKETIO_PORT      = 8082
 SOCKETIO_NAMESPACE = 'stream'
 
-forever = False 
+forever = True 
 
 if (forever == False):
  query = {'profile_id': 'HthZRrHnlC',
@@ -45,7 +45,11 @@ class stream_receiver (sioc.BaseNamespace):
       pkt = args[0]
       if (pkt['event_type'] == 'plugged'):
          to_write['event_type'] = -1
+      if (pkt['event_type'] == 'usr_plugged'):
+         to_write['event_type'] = -1
       if (pkt['event_type'] == 'unplugged'):
+         to_write['event_type'] = 1
+      if (pkt['event_type'] == 'usr_unplugged'):
          to_write['event_type'] = 1
       if (pkt['event_type'] != 'wd'):
         to_write['id'] = pkt['phone_id'] 
