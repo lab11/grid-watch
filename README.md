@@ -16,7 +16,7 @@ Applications
 ------------
 
 [
-![android_screenshot](https://github.com/lab11/grid-watch/raw/master/media/android_v0.1_screenshot_sm.png)
-](https://github.com/lab11/grid-watch/raw/master/media/android_v0.1_screenshot.png)
+![android_screenshot](http://bit.ly/1InoSaE)
+](http://bit.ly/1InoSaE)
 
 The `.apk` for Android is located in the `/release/android` folder.
