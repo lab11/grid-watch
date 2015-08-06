@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="SAMPLE_FREQUENCY">1</integer>
+    <integer name="RECORDER_TIME">1</integer>
+
+</resources>

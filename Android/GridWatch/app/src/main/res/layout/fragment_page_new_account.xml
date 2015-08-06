@@ -1,0 +1,92 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/WizardPageContainer"
+    android:orientation="vertical">
+
+    <TextView style="@style/WizardPageTitle" />
+
+    <ScrollView android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:weightSum="1">
+
+            <TextView style="@style/WizardFormLabel"
+                android:text="@string/label_your_name" />
+
+            <EditText android:id="@+id/your_username"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:saveEnabled="false"
+                android:hint="@string/hint_your_name"
+                android:layout_marginBottom="16dp"
+                android:inputType="text" />
+
+            <TextView style="@style/WizardFormLabel"
+                android:text="@string/label_your_password" />
+
+            <EditText android:id="@+id/your_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:saveEnabled="false"
+                android:inputType="textWebPassword"
+                android:hint="@string/hint_your_password"
+                android:layout_marginBottom="16dp" />
+
+            <TextView style="@style/WizardFormLabel"
+                android:text="@string/label_your_password_confirm" />
+
+            <EditText android:id="@+id/your_password_confirm"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:saveEnabled="false"
+                android:inputType="textWebPassword"
+                android:hint="@string/hint_your_password_confirm"
+                android:layout_marginBottom="16dp" />
+
+            <TextView style="@style/WizardFormLabel"
+                android:text="@string/label_your_email" />
+
+            <EditText android:id="@+id/your_email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:saveEnabled="false"
+                android:inputType="textEmailAddress"
+                android:hint="@string/hint_your_email"
+                android:layout_marginBottom="16dp" />
+
+            <EditText android:id="@+id/new_account_username"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:saveEnabled="false"
+                android:gravity="center"
+                android:layout_marginBottom="20dp"
+                android:background="@null"
+                android:inputType="none" />
+
+            <EditText android:id="@+id/new_account_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:saveEnabled="false"
+                android:gravity="center"
+                android:layout_marginBottom="20dp"
+                android:background="@null"
+                android:inputType="none" />
+
+            <EditText android:id="@+id/new_account_email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:saveEnabled="false"
+                android:gravity="center"
+                android:layout_marginBottom="20dp"
+                android:background="@null"
+                android:inputType="none" />
+
+
+
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

@@ -1,0 +1,87 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/WizardPageContainer"
+    android:orientation="vertical">
+
+    <TextView style="@style/WizardPageTitle" />
+
+    <ScrollView android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView style="@style/WizardFormLabel"
+                android:text="@string/label_your_real_name" />
+
+            <EditText android:id="@+id/your_real_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:saveEnabled="false"
+                android:inputType="textCapWords"
+                android:hint="@string/hint_your_name"
+                android:layout_marginBottom="16dp" />
+
+            <TextView style="@style/WizardFormLabel"
+                android:text="@string/label_your_address" />
+
+            <EditText android:id="@+id/your_address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:saveEnabled="false"
+                android:inputType="textPostalAddress"
+                android:hint="@string/hint_your_address"
+                android:layout_marginBottom="16dp" />
+
+            <TextView style="@style/WizardFormLabel"
+                android:text="@string/label_your_age" />
+
+            <EditText android:id="@+id/your_age"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:saveEnabled="false"
+                android:inputType="numberSigned"
+                android:hint="@string/hint_your_age"
+                android:layout_marginBottom="16dp" />
+
+
+            <TextView style="@style/WizardFormLabel"
+                android:text="@string/label_your_estimated_outage" />
+
+            <EditText android:id="@+id/your_number_estimated_outages"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:saveEnabled="false"
+                android:inputType="numberSigned"
+                android:hint="@string/hint_your_estimated_outages"
+                android:layout_marginBottom="16dp" />
+
+
+            <TextView style="@style/WizardFormLabel"
+                android:text="@string/label_your_estimated_outage_length" />
+
+            <EditText android:id="@+id/your_estimated_outage_length"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:saveEnabled="false"
+                android:inputType="numberSigned"
+                android:hint="@string/hint_your_estimated_outage_length"
+                android:layout_marginBottom="16dp" />
+
+            <TextView style="@style/WizardFormLabel"
+                android:text="@string/label_your_utility_name" />
+
+            <EditText android:id="@+id/your_utility_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:saveEnabled="false"
+                android:inputType="textCapWords"
+                android:hint="@string/hint_your_utility_name"
+                android:layout_marginBottom="16dp" />
+
+
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
