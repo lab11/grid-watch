@@ -1,7 +1,7 @@
-Grid Watch
+GridWatch
 ==========
 
-Grid watch is a system for monitoring the state of the power grid using just
+GridWatch is a system for monitoring the state of the power grid using just
 smart phones. Phones running the GridWatch application monitor their status
 for power change events (when the phone goes from charging to not charging).
 This transition could signal a power outage, but is likely just the user
@@ -16,11 +16,11 @@ Applications
 ------------
 
 [
-![android_screenshot_1](https://umich.box.com/shared/static/h52yr7djserbi77paik4igct06rwqm93.png)
-](https://umich.box.com/shared/static/h52yr7djserbi77paik4igct06rwqm93.png)
+![android_screenshot_1](https://raw.githubusercontent.com/lab11/grid-watch/master/media/gridwatch_screenshot_1_sm.png)
+](https://raw.githubusercontent.com/lab11/grid-watch/master/media/gridwatch_screenshot_1_sm.png)
 
 [
-![android_screenshot_2](https://umich.box.com/shared/static/rx66zfodiefjsswsiw0ligoiz103op0w.png)
-](https://umich.box.com/shared/static/rx66zfodiefjsswsiw0ligoiz103op0w.png)
+![android_screenshot_2](https://raw.githubusercontent.com/lab11/grid-watch/master/media/gridwatch_screenshot_2_sm.png)
+](https://raw.githubusercontent.com/lab11/grid-watch/master/media/gridwatch_screenshot_2_sm.png)
 
 The `.apk` for Android is located in the `/release/android` folder.
