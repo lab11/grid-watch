@@ -16,7 +16,11 @@ Applications
 ------------
 
 [
-![android_screenshot](http://bit.ly/1InoSaE)
-](http://bit.ly/1InoSaE)
+![android_screenshot_1](https://umich.box.com/shared/static/h52yr7djserbi77paik4igct06rwqm93.png)
+](https://umich.box.com/shared/static/h52yr7djserbi77paik4igct06rwqm93.png)
+
+[
+![android_screenshot_2](https://umich.box.com/shared/static/rx66zfodiefjsswsiw0ligoiz103op0w.png)
+](https://umich.box.com/shared/static/rx66zfodiefjsswsiw0ligoiz103op0w.png)
 
 The `.apk` for Android is located in the `/release/android` folder.
