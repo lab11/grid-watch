@@ -43,7 +43,7 @@ public class MicrophoneService extends IntentService implements Runnable {
     private final static int RECORDER_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
 
     private static AudioRecord mRecorder = null;
-    private static ResultReceiver resultReceiver;
+    private static ResultReceiver mResultReceiver;
     private static Context mContext;
     private static int recBufferSize;
     private static byte tmpData[];
@@ -61,7 +61,7 @@ public class MicrophoneService extends IntentService implements Runnable {
     @Override
     protected void onHandleIntent(Intent workIntent) {
         Log.d(onHandleIntentTag, "hit");
-        resultReceiver = workIntent.getParcelableExtra(IntentConfig.RECEIVER_KEY);
+        mResultReceiver = workIntent.getParcelableExtra(IntentConfig.RECEIVER_KEY);
         mContext = this.getApplicationContext();
         initAudioRecorder();
         setupFilePaths();
@@ -107,7 +107,7 @@ public class MicrophoneService extends IntentService implements Runnable {
         Bundle bundle = new Bundle();
         bundle.putString(IntentConfig.RESULT_KEY, result);
         bundle.putString(IntentConfig.MESSAGE_KEY,recordingFileName);
-        resultReceiver.send(IntentConfig.MICROPHONE, bundle);
+        mResultReceiver.send(IntentConfig.MICROPHONE, bundle);
     }
     private void initAudioRecorder(){
         recBufferSize = AudioRecord.getMinBufferSize(SAMPLE_FREQUENCY,

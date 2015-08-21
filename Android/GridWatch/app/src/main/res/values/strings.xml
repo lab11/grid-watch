@@ -7,12 +7,18 @@
     <string name="report_outage_btn">My Power Is Out!</string>
     <string name="title_activity_map">map</string>
     <string name="title_activity_settings">settings</string>
+    <string name="title_log_view_activity">Log</string>
+
     <string name="report">Report</string>
     <string name="cancel">Cancel</string>
     <string name="report_dialog">To report a power outage, type the following characters and press report.</string>
     <string name="ok">OK</string>
     <string name="no_utility_dialog">Please enter in the name and phone number of your utility company before reporting an outage.</string>
     <string name="action_about">About</string>
+    <string name="action_view_log">View Log</string>
+
+    <string name="refresh_log_btn">Refresh Log</string>
+
     <string name="about_dialog">GridWatch is a collaboration between the University of Michigan Lab11 and the University of California Berkeley. This app is currently in public beta and is not fully functional. Check out our website for more information: http://grid.Watch:8088 .</string>
     <string name="title_activity_register">register</string>
     <string name="success_dialog">Report Sent!</string>
@@ -125,6 +131,8 @@
     <string name="token_error_message">An error occurred while either fetching the InstanceID token,
         sending the fetched token to the server or subscribing to the PubSub topic. Please try
         running the sample again.</string>
+
+    <string name="notifications_on_wd">Generate notifications on watchdog.</string>
 
 
     <string name="make_data_public">Make anonymized data public.</string>

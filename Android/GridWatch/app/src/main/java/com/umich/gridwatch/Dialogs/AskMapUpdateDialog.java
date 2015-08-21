@@ -18,14 +18,11 @@ public class AskMapUpdateDialog extends DialogFragment {
 
     SharedPreferences sharedpreferences;
 
-
-
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
         sharedpreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         final SharedPreferences.Editor editor = sharedpreferences.edit();
-
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         final String tag = "all:AskMapUpdateDialog:onCreateDialog";

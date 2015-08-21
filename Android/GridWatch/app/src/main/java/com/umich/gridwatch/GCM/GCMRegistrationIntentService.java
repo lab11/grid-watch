@@ -19,10 +19,10 @@ import java.io.IOException;
  */
 public class GCMRegistrationIntentService extends IntentService {
 
-        private static final String TAG = "RegIntentService";
+        private static final String onHandleIntentTag = "RegIntentService:onHandleIntentTag";
         private static final String[] TOPICS = {"global", "sensors"};
 
-        public GCMRegistrationIntentService() { super(TAG); }
+        public GCMRegistrationIntentService() { super("RegIntentService"); }
 
         @Override
         protected void onHandleIntent(Intent intent) {
@@ -31,7 +31,7 @@ public class GCMRegistrationIntentService extends IntentService {
             try {
                 // In the (unlikely) event that multiple refresh operations occur simultaneously,
                 // ensure that they are processed sequentially.
-                synchronized (TAG) {
+                synchronized ("RegIntentService") {
                     // [START register_for_gcm]
                     // Initially this call goes out to the network to retrieve the token, subsequent calls
                     // are local.
@@ -40,7 +40,7 @@ public class GCMRegistrationIntentService extends IntentService {
                     String token = instanceID.getToken(Private.gcm_sender_id,
                             GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
                     // [END get_token]
-                    Log.i(TAG, "GCM Registration Token: " + token);
+                    Log.i(onHandleIntentTag, "GCM Registration Token: " + token);
 
                     // TODO: Implement this method to send any registration to your app's servers.
                     sendRegistrationToServer(token);
@@ -55,7 +55,7 @@ public class GCMRegistrationIntentService extends IntentService {
                     // [END register_for_gcm]
                 }
             } catch (Exception e) {
-                Log.d(TAG, "Failed to complete token refresh", e);
+                Log.d(onHandleIntentTag, "Failed to complete token refresh", e);
                 // If an exception happens while fetching the new token or updating our registration data
                 // on a third-party server, this ensures that we'll attempt the update at a later time.
                 sharedPreferences.edit().putBoolean(GCMPreferences.SENT_TOKEN_TO_SERVER, false).apply();

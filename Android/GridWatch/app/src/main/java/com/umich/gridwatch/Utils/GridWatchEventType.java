@@ -8,7 +8,7 @@ public enum GridWatchEventType {
     PLUGGED,
     USR_PLUGGED,
     USR_UNPLUGGED,
-    WD,
+    WD, //watchdog
     GCM, //used to filter intents by high level event type
     GCM_FFT,
     GCM_ACCEL,
@@ -18,8 +18,8 @@ public enum GridWatchEventType {
     GCM_MAP_GET, //triggers download of global map data
     GCM_ASK, //triggers notification asking if experienced power outage
     GCM_ASK_RESPONSE, //holds response for the ask
-    GCM_ALL,
-    DELETE
+    GCM_ALL, //get all the sensors
+    DELETE //delete users data
 }
 
 

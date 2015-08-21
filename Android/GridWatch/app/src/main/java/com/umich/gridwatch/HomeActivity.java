@@ -13,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.PowerManager;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -56,47 +57,57 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 
-public class HomeActivity extends ActionBarActivity implements ReportDialog.ReportDialogListener, AskDialog.AskDialogListener, AskMapUpdateDialog.AskMapUpdateDialogListener, ConsentDialog.ConsentDialogListener {
+/*
+This needs some rather major refactoring
 
-    String onCreateTag = "homeActivity:onCreate";
-    String onCreateOptionsTag = "homeActivity:onCreateOptions";
-    String onOptionsItemSelectedTag = "homeActivity:onOptionsItemSelected";
-    String onResumeTag = "homeActivity:onResume";
-    String onReturnValueTag = "homeActivity:onReturnValue";
-    String setupManualReportButtonTag = "homeActivity:setupManualReportButton";
-    String startGWServiceTag = "homeActivity:startGWService";
-    String setupMapTag = "homeActivity:setupMap";
-    String initGCMTag = "homeActivity:initGCM";
-    String checkPlayServicesTag = "homeActivity:checkPlayServices";
-    String broadcastReceiverTag = "homeActivity:broadcastReceiver";
+This is the main UI class. It will one day be the only place
+where dialogs are spawned. This would require changes in SettingsPerferenceActivity
+and in other places.
+
+Currently, updating the map, gcm, and getting the consent are done in this class...
+They should be moved to individual sensors in the sensors folder
+ */
+
+public class HomeActivity extends ActionBarActivity implements ReportDialog.ReportDialogListener, AskDialog.AskDialogListener, AskMapUpdateDialog.AskMapUpdateDialogListener, ConsentDialog.ConsentDialogListener {
+    private final static String onCreateTag = "homeActivity:onCreate";
+    private final static String onCreateOptionsTag = "homeActivity:onCreateOptions";
+    private final static String onOptionsItemSelectedTag = "homeActivity:onOptionsItemSelected";
+    private final static String onResumeTag = "homeActivity:onResume";
+    private final static String onReturnValueTag = "homeActivity:onReturnValue";
+    private final static String setupManualReportButtonTag = "homeActivity:setupManualReportButton";
+    private final static String startGWServiceTag = "homeActivity:startGWService";
+    private final static String setupMapTag = "homeActivity:setupMap";
+    private final static String initGCMTag = "homeActivity:initGCM";
+    private final static String checkPlayServicesTag = "homeActivity:checkPlayServices";
+    private final static String broadcastReceiverTag = "homeActivity:broadcastReceiver";
+    private final static String onAskMapUpdateReturnValueTag = "homeActivity:onAskMapUpdateReturnValue";
 
     private ProgressDialog mProgressDialog;
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private static int cur_event_index;
 
-
-    private boolean display_on = true; //off had an odd UI block... push to its own thread antd it would be ok...
+    private boolean display_on = true; //display download progress or not. off had an odd UI block... push to its own thread and it would be ok...
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //TODO delete before shipping... remove this and permission
-        //Vibrator v = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
-        //v.vibrate(300);
+        //TODO delete before shipping... remove this and its permission
+        Vibrator v = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(300);
 
-        initGCM();
-        initIntentReceiver();
-        initDownloader();
-        setupMap();
+        initGCM(); //set up GCM callbacks
+        initIntentReceiver(); //the homeactivity should do all UI. needs to get callbacks
+        initDownloader(); //setup the map downloader
+        setupMap(); //load the map UI
         setupManualReportButton();
-        updateMap();
-        doConsent();
-
+        //updateMap(); //download and parse the map code TODO implement fully
+        doConsent(); //check for consent and force it
     }
 
+    // Ask for consent if needed
     public void doConsent() {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         Boolean consent_val = sp.getBoolean(SensorConfig.consent, false);
@@ -107,6 +118,7 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
     }
 
 
+    // Get the value of the consent dialog if displayed
     @Override
     public void onConsentReturnValue(Boolean foo) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
@@ -114,33 +126,31 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         editor.putBoolean(SensorConfig.consent, foo);
         editor.apply();
 
-
         if (foo != true) {
-            System.exit(0);
+            System.exit(0); //no consent. no app.
         } else {
-            startGWService();
+            startGWService(); //get the background service going
         }
     }
 
+    // Spawn the manual report event
     @Override
     public void onDialogReturnValue(Boolean foo) {
-        Log.i(onReturnValueTag, "Got value " + foo + " back from Dialog!");
         if (foo == true) {
             Intent intent = new Intent(HomeActivity.this, GridWatchService.class);
             intent.putExtra(IntentConfig.INTENT_MANUAL_KEY, IntentConfig.INTENT_EXTRA_EVENT_MANUAL_OFF);
             startService(intent);
         }
     }
+
+    // Download the map from the GW servers...
     public void updateMap() {
-        //TESTING CODE
         downloadMap();
         try {
             GeoJSONObject geoJSON = GeoJSON.parse(readFromFile());
-            Log.d("god", geoJSON.toJSON().toString(2));
         }
         catch (JSONException e) {
             e.printStackTrace();
-            Log.d("god", "hit");
         }
     }
 
@@ -175,14 +185,12 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         registerReceiver(mBroadcastReceiver, new IntentFilter(IntentConfig.INTENT_NAME));
     }
 
-
     @Override
     protected void onStop()
     {
         unregisterReceiver(mBroadcastReceiver);
         super.onStop();
     }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -201,27 +209,22 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
             return true;
         }
 
+        if (id == R.id.action_view_log) {
+            startActivity(new Intent(HomeActivity.this, LogViewActivity.class));
+        }
+
         if (id == R.id.action_refresh) {
             setupAskMapUpdate();
         }
 
-
         if (id == R.id.action_tutorial) {
             startActivity(new Intent(HomeActivity.this, TutorialActivity.class));
-
-
-            //Intent intent = new Intent(this, TutorialActivity.class);
-            //this.startActivity(intent);
         }
-
-
 
         return super.onOptionsItemSelected(item);
     }
 
     // This will be used to catch the result of the manual dialog and spawn another dialog reporting success
-
-
     @Override
     public void onAskReturnValue(Boolean foo) {
         Intent intent = new Intent(HomeActivity.this, GridWatchService.class);
@@ -231,17 +234,18 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         startService(intent);
     }
 
+    // Set the auto updating map preferences
     @Override
     public void onAskMapUpdateReturnValue(String foo) {
         //Intent intent = new Intent(HomeActivity.this, GridWatchService.class);
-        Log.d("onAskMapUpdateReturn", String.valueOf(foo));
-        if (foo.equals(SensorConfig.yes) || foo.equals(SensorConfig.always)) {
+        Log.d(onAskMapUpdateReturnValueTag, String.valueOf(foo));
+        if (String.valueOf(foo).equals(SensorConfig.yes) || String.valueOf(foo).equals(SensorConfig.always)) {
             display_on = true;
             if (foo.equals(SensorConfig.always)) {
                 SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
                 SharedPreferences.Editor editor = sp.edit();
                 editor.putString("map_update_pref", SensorConfig.always);
-                Log.w("setting always", sp.getString("map_update_title", ""));
+                Log.d(onAskMapUpdateReturnValueTag + " setting always", sp.getString("map_update_title", ""));
                 editor.putString("map_update_values", "Auto");
                 editor.apply();
             }
@@ -264,6 +268,7 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         super.onPause();
     }
 
+    // The app needs google play to do the GCM stuff
     private boolean checkPlayServices() {
         int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
         if (resultCode != ConnectionResult.SUCCESS) {
@@ -271,7 +276,7 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
                 GooglePlayServicesUtil.getErrorDialog(resultCode, this,
                         PLAY_SERVICES_RESOLUTION_REQUEST).show();
             } else {
-                Log.i(checkPlayServicesTag, "This device is not supported.");
+                Log.d(checkPlayServicesTag, "This device is not supported.");
                 finish();
             }
             return false;
@@ -279,6 +284,7 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         return true;
     }
 
+    // Init the GCM code
     private void initGCM() {
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
             @Override
@@ -288,9 +294,9 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
                 boolean sentToken = sharedPreferences
                         .getBoolean(GCMPreferences.SENT_TOKEN_TO_SERVER, false);
                 if (sentToken) {
-                    Log.w(initGCMTag, getString(R.string.gcm_send_message));
+                    Log.d(initGCMTag, getString(R.string.gcm_send_message));
                 } else {
-                    Log.w(initGCMTag, getString(R.string.token_error_message));
+                    Log.d(initGCMTag, getString(R.string.token_error_message));
                 }
             }
         };
@@ -299,11 +305,13 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         }
     }
 
+    // Get the background process running... This little call is pretty important
     private void startGWService() {
         Intent intent = new Intent(this, GridWatchService.class);
         startService(intent);
     }
 
+    // Shows the main map
     public void setupMap() {
         //TODO add in offline error message here... maybe cache last map if possible?... this doesnt seem to work yet
         if (!isConnected()) {
@@ -322,9 +330,9 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
                     .replace(R.id.content_frame, fragment)
                     .commit();
         }
-
     }
 
+    // The button to manually report a power outage
     public void setupManualReportButton() {
         final ActionProcessButton btnReport = (ActionProcessButton) findViewById(R.id.report_btn);
         btnReport.setMode(ActionProcessButton.Mode.PROGRESS);
@@ -338,20 +346,22 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         });
     }
 
+    // Sets up the map update preference dialog box
     public void setupAskMapUpdate() {
-
-        //TODO not working yet
         SharedPreferences sp =  PreferenceManager.getDefaultSharedPreferences(this);
         Map<String,?> keys = sp.getAll();
         String map_update_pref = (String) keys.get("map_update_pref"); //hack for now... should be Integer, but this was crashing all the time... not important enough to debug yet
-        if (!map_update_pref.equals(SensorConfig.always)) {
-            AskMapUpdateDialog dialog = new AskMapUpdateDialog();
-            dialog.show(getSupportFragmentManager(), "AskMapUpdateDialogFragment");
-        } else {
-            updateMap();
+        if (map_update_pref != null) {
+            if (!map_update_pref.equals(SensorConfig.always)) {
+                AskMapUpdateDialog dialog = new AskMapUpdateDialog();
+                dialog.show(getSupportFragmentManager(), "AskMapUpdateDialogFragment");
+            } else {
+                updateMap();
+            }
         }
     }
 
+    // Generate the GCM ask UI
     public void setupAskReport(int i) {
         cur_event_index = i;
         Log.d(setupManualReportButtonTag, "ASK GENERATED");
@@ -359,14 +369,15 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         dialog.show(getSupportFragmentManager(), "AskDialogFragment");
     }
 
+    // Get all the intents. This is scafolding to handle UI events from around the app
     public BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getStringExtra(IntentConfig.INTENT_TO_HOME) == null) return; //should be changed so that this isn't broadcast
-            Log.w(broadcastReceiverTag, "Event Received in HomeActivity");
+            Log.d(broadcastReceiverTag, "Event Received in HomeActivity");
             if (intent.getStringExtra(IntentConfig.INTENT_TO_HOME).equals(IntentConfig.INTENT_EXTRA_EVENT_GCM_ASK)) {
                 setupAskReport(intent.getIntExtra(IntentConfig.INTENT_EXTRA_EVENT_GCM_ASK_INDEX, 0));
-                Log.w(broadcastReceiverTag, "confirm gcm ask");
+                Log.d(broadcastReceiverTag, "confirm gcm ask");
             }
             /*
             else if (intent.getStringExtra(IntentConfig.INTENT_TO_HOME).equals(IntentConfig.INTENT_EXTRA_EVENT_CONFIRM_DELETE)) {
@@ -377,6 +388,7 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         }
     };
 
+    // TODO move to NetworkAndPhoneUtils
     public boolean isConnected() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -384,6 +396,8 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
+    // Class for downloading and parsing map data from GW servers. This is formated as a GEOJSON.
+    //TODO finish implementing and add in password protection
     private class DownloadTask extends AsyncTask<String, Integer, String> {
 
         private Context context;
@@ -482,6 +496,7 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         }
     }
 
+    // Read in the local log for the map
     private String readFromFile() {
         File sdcard = Environment.getExternalStorageDirectory();
         File file = new File(sdcard,"map.extension");

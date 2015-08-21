@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -42,10 +43,21 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 
 //TODO It doesn't seem that the wifi callbacks are working
-public class GridWatchDeleteService extends Service {
+public class GridWatchDeleteService extends Service  {
 
     private final static String MANUAL = "manual";
     private final static String REAL = "real";
+
+    // Debug Tags
+    private final static String onCreateTag = "GridWatchDeleteService:onCreate";
+    private final static String onDestoryTag = "GridWatchDeleteService:onDestroy";
+    private final static String onDeleteTag= "GridWatchDeleteService:onDelete";
+    private final static String onStartCommandTag = "GridWatchDeleteService:onStartCommand";
+    private final static String broadcastReceiverConnectionListenerReceiverTag = "GridWatchDeleteService:BroadcastReceiver:ConnectionListenerReceiver";
+    private final static String PostAlertTaskdoInBackgroundTag = "GridWatchDeleteService:PostAlertTask:doInBackground";
+    private final static String ProcessAlertQTaskdoInBackgroundTag = "GridWatchDeleteService:ProcessAlertQTask:doInBackground";
+    private final static String TransmitterdoInBackground = "GridWatchDeleteService:Transmitter:doInBackground";
+    private final static String TransmitterPostEvent = "GridWatchDeleteService:Transmitter:PostEvent";
 
     private final static int MAX_QUEUE_SIZE = 20;
 
@@ -54,13 +66,8 @@ public class GridWatchDeleteService extends Service {
     // server.
     private final static int EVENT_PROCESS_TIMER_PERIOD = 1000;
 
-    // Debug Tags
-    private static String errorTag = "error";
-    private static String noteTag = "note";
-
     // List of all of the active events we are currently handling
     private ArrayList<GridWatchDeleteEvent> mEvents = new ArrayList<GridWatchDeleteEvent>();
-
 
     // Timer that is fired to check if each event is ready to be sent to
     // the server.
@@ -83,7 +90,6 @@ public class GridWatchDeleteService extends Service {
 
         // Receive a callback when Internet connectivity is restored
         register_connectivity_callbacks();
-
     }
 
 
@@ -93,7 +99,7 @@ public class GridWatchDeleteService extends Service {
 
     @Override
     public void onDestroy() {
-        Log.d("GridWatchService", "service destroyed");
+        Log.d(onDestoryTag, "service destroyed");
         mGWLogger.log(mDateFormat.format(new Date()), "destroyed", null);
 
         // Unregister us from different events
@@ -102,19 +108,19 @@ public class GridWatchDeleteService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d("GridWatchDeleteService", "delete service started");
+        Log.d(onStartCommandTag, "delete service started");
         mGWLogger.log(mDateFormat.format(new Date()), "deleted", null);
 
         if (intent != null && intent.getExtras() != null) {
             if (intent.getExtras().getString(IntentConfig.INTENT_DELETE_KEY).equals(IntentConfig.INTENT_DELETE)) {
                 String msg = intent.getExtras().getString(IntentConfig.INTENT_DELETE_MSG);
-                Log.d(noteTag, "delete requested");
+                Log.d(onStartCommandTag, "delete requested");
                 onDelete(msg);
             } else {
-                Log.d(errorTag, "Unknown intent: " + intent.getAction());
+                Log.e(onStartCommandTag, "Unknown intent: " + intent.getAction());
             }
         }
-        Log.w("GridWatchService:onStart", "hit");
+        Log.w(onStartCommandTag, "hit");
         return START_STICKY;
     }
 
@@ -122,12 +128,16 @@ public class GridWatchDeleteService extends Service {
     private BroadcastReceiver mConnectionListenerReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            ConnectivityManager cm = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
+            Log.w(broadcastReceiverConnectionListenerReceiverTag, "hit");
+
+            ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetworkInfo = cm.getActiveNetworkInfo();;
+
             if (cm == null) {
                 return;
             }
-            if (cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnected()) {
-                Log.w("CONNECTIVITY RESTORED", "hit");
+            if (activeNetworkInfo != null && activeNetworkInfo.isConnected()) {
+                Log.d(broadcastReceiverConnectionListenerReceiverTag, "hit");
                 new ProcessAlertQTask().execute();
             }
         }
@@ -140,7 +150,7 @@ public class GridWatchDeleteService extends Service {
     }
 
     private void onDelete(String msg) {
-        Log.d(noteTag, "onDelete");
+        Log.d(onDeleteTag, "onDelete");
         GridWatchDeleteEvent gwDeleteEvent = new GridWatchDeleteEvent(GridWatchEventType.DELETE, this.getApplicationContext(), msg);
         mEvents.add(gwDeleteEvent);
         startEventProcessTimer();
@@ -199,20 +209,18 @@ public class GridWatchDeleteService extends Service {
         // This gets called by the OS
         @Override
         protected Void doInBackground(HttpPost... httpposts) {
-            Log.w("GridWatchDeleteService", "PostAlertTask start");
-
+            Log.d(PostAlertTaskdoInBackgroundTag, "PostAlertTask start");
             HttpClient httpclient = new DefaultHttpClient();
-
             try {
                 // Execute the HTTP POST request
                 @SuppressWarnings("unused")
                 HttpResponse response = httpclient.execute(httpposts[0]);
-                Log.d("GridWatchDeleteService", "POST response: " + response);
+                Log.d(PostAlertTaskdoInBackgroundTag, "POST response: " + response);
             } catch (ClientProtocolException e) {
-                // TODO Auto-generated catch block
+                Log.e(PostAlertTaskdoInBackgroundTag, "ClientProtocolException, not attempting later delivery");
                 e.printStackTrace();
             } catch (IOException e) {
-                Log.d("GridWatchDeleteService", "IO Exception, not attempting later delivery");
+                Log.e(PostAlertTaskdoInBackgroundTag, "IO Exception, not attempting later delivery");
 
                 //TODO DUMB... this is repeated over and over... why?
                 if (mAlertQ.size() > MAX_QUEUE_SIZE) {
@@ -221,7 +229,7 @@ public class GridWatchDeleteService extends Service {
                 }
 
                 if (mAlertQ.offer(httpposts[0]) == false) {
-                    Log.e("GridWatchDeleteService", "Failed to add element to alertQ?");
+                    Log.e(PostAlertTaskdoInBackgroundTag, "Failed to add element to alertQ?");
                 }
             }
             return null;
@@ -234,18 +242,15 @@ public class GridWatchDeleteService extends Service {
 
         @Override
         protected Void doInBackground(Void... arg0) {
-            Log.d("GridWatchDeleteService", "ProcessAlertQTask Start");
-
+            Log.d(ProcessAlertQTaskdoInBackgroundTag, "ProcessAlertQTask Start");
             HttpClient httpclient = new DefaultHttpClient();
             HttpPost post = null;
-
             try {
                 //TODO DUMB... this is repeated over and over... why?
                 if (mAlertQ.size() > MAX_QUEUE_SIZE) {
                     mAlertQ.clear();
                     mGWLogger.log(mDateFormat.format(new Date()), "queue reached max and cleared", null);
                 }
-
                 while (mAlertQ.size() > 0) {
 
                     post = mAlertQ.poll();
@@ -254,20 +259,19 @@ public class GridWatchDeleteService extends Service {
                     }
                     @SuppressWarnings("unused")
                     HttpResponse response = httpclient.execute(post); //TODO... is the queing working?
-                    Log.d("QUEUE", "POST response: " + response);
+                    Log.d(ProcessAlertQTaskdoInBackgroundTag, "POST response: " + response);
                 }
             } catch (ClientProtocolException e) {
-                // TODO Auto-generated catch block
+                Log.e(ProcessAlertQTaskdoInBackgroundTag, "ClientProtocolException, queuing for later delivery");
                 e.printStackTrace();
             } catch (IOException e) {
                 //e.printStackTrace();
-                Log.d("GridWatchDeleteService", "IO Exception, queuing for later delivery");
+                Log.e(ProcessAlertQTaskdoInBackgroundTag, "IO Exception, queuing for later delivery");
                 if (post == null) {
-                    Log.w("GridWatchDeleteService", "Caught post is null?");
+                    Log.e(ProcessAlertQTaskdoInBackgroundTag, "Caught post is null?");
                 }
-
                 else if (mAlertQ.offer(post) == false) {
-                    Log.e("GridWatchDeleteService", "Failed to add element to alertQ?");
+                    Log.e(ProcessAlertQTaskdoInBackgroundTag, "Failed to add element to alertQ?");
                 }
             }
             return null;
@@ -286,20 +290,16 @@ public class GridWatchDeleteService extends Service {
 
 
     private class Transmitter extends AsyncTask<TransmitterType, Void, Void> {
-
-
         @Override
         protected Void doInBackground(TransmitterType... args) {
-
             GridWatchDeleteEvent gwDeleteEvent = args[0].gwDeleteEvent;
             Context context = args[0].context;
             postEvent(gwDeleteEvent, context);
-            Log.w(noteTag, "STARTING TRANSMITTER");
+            Log.d(TransmitterdoInBackground, "STARTING TRANSMITTER");
             return null;
         }
 
         private void postEvent (GridWatchDeleteEvent gwDeleteEvent, Context context) {
-
             List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(30);
             List<NameValuePair> msgValuePairs = new ArrayList<NameValuePair>(30);
 
@@ -320,7 +320,7 @@ public class GridWatchDeleteService extends Service {
             }
             String msg = post_info.substring(0,post_info.length()-1);
 
-            Log.w("POSTING", msg);
+            Log.d(TransmitterPostEvent, msg);
 
             nameValuePairs.add(new BasicNameValuePair("topic", "gridwatch_delete"));
             nameValuePairs.add(new BasicNameValuePair("key", "event"));
@@ -337,8 +337,6 @@ public class GridWatchDeleteService extends Service {
             new PostAlertTask().execute(httppost);
         }
     }
-
-
 
     @Override
     public IBinder onBind(Intent arg0) {

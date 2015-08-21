@@ -14,9 +14,7 @@ import java.util.ArrayList;
 public class GridWatchLogger {
 
 	private final static String LOG_NAME = "gridwatch.log";
-
 	private File mLogFile;
-
     private Context mContext;
 
 	public GridWatchLogger(Context context) {

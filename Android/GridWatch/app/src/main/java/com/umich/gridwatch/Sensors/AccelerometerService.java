@@ -27,7 +27,7 @@ public class AccelerometerService extends IntentService implements SensorEventLi
     private static long lastUpdate = 0;
     private static long firstTime = 0;
     private static float last_x, last_y, last_z;
-    private static ResultReceiver resultReceiver;
+    private static ResultReceiver mResultReceiver;
 
     private static final long TIME_THRES = SensorConfig.ACCEL_SAMPLE_TIME_MS;
     private static final int SHAKE_THRESHOLD = SensorConfig.ACCEL_SHAKE_THRESHOLD;
@@ -44,7 +44,7 @@ public class AccelerometerService extends IntentService implements SensorEventLi
         senSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         senAccelerometer = senSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         senSensorManager.registerListener(this, senAccelerometer , SensorManager.SENSOR_DELAY_NORMAL);
-        resultReceiver = workIntent.getParcelableExtra(IntentConfig.RECEIVER_KEY);
+        mResultReceiver = workIntent.getParcelableExtra(IntentConfig.RECEIVER_KEY);
     }
 
     @Override
@@ -69,7 +69,7 @@ public class AccelerometerService extends IntentService implements SensorEventLi
                    senSensorManager.unregisterListener(this, senAccelerometer);
                    Bundle bundle = new Bundle();
                    bundle.putString(IntentConfig.RESULT_KEY, IntentConfig.RESULT_FAILED);
-                   resultReceiver.send(IntentConfig.ACCELEROMETER, bundle);
+                   mResultReceiver.send(IntentConfig.ACCELEROMETER, bundle);
                 }
                 last_x = x;
                 last_y = y;
@@ -81,7 +81,7 @@ public class AccelerometerService extends IntentService implements SensorEventLi
                 senSensorManager.unregisterListener(this, senAccelerometer);
                 Bundle bundle = new Bundle();
                 bundle.putString(IntentConfig.RESULT_KEY, IntentConfig.RESULT_PASSED);
-                resultReceiver.send(IntentConfig.ACCELEROMETER, bundle);
+                mResultReceiver.send(IntentConfig.ACCELEROMETER, bundle);
             }
         }
     }

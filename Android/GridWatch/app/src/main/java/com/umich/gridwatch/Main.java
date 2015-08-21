@@ -2,11 +2,9 @@ package com.umich.gridwatch;
 
 import android.app.Application;
 import android.content.Context;
-import android.content.Intent;
 import android.support.multidex.MultiDex;
 import android.util.Log;
 
-import com.umich.gridwatch.GCM.GCMRegistrationIntentService;
 import com.umich.gridwatch.Utils.Private;
 
 import org.acra.ReportField;
@@ -45,21 +43,27 @@ import org.acra.sender.HttpSender;
         },
         logcatArguments = { "-t", "100", "-v", "long", "ActivityManager:I", "GridWatch:D", "*:S" }
 )
+
+
 public class Main extends Application {
+
+    private final static String onCreateTag = "Main:onCreate";
+
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.w("STARTING", "STARTING GRIDWATCH");
-       // ACRA.init(this); //TODO disabled for testing... enable before release
+        Log.d(onCreateTag, "STARTING GRIDWATCH");
+        //if (!SensorConfig.debug) {
+        //    ACRA.init(this); //TODO disabled for testing... enable before release. This captures all crashes to an cloudant instance and launches a UI allowing for the user to add comments.
+        //}
     }
 
+    /*
+    Overriding this method is key for the FFT library. MultiDex allows for more libraries to be included. Unfortunatly, this seems to slow down the gradle build fairly significantly.
+     */
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         MultiDex.install(this);
     }
-
-
-
-
 }

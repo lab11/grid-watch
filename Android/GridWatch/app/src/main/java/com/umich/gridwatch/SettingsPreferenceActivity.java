@@ -23,34 +23,46 @@ import android.util.Log;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 
+import com.umich.gridwatch.Utils.GridWatchLogger;
 import com.umich.gridwatch.Utils.IntentConfig;
 
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * A {@link PreferenceActivity} that presents a set of application settings. On
- * handset devices, settings are presented as a single list. On tablets,
- * settings are split by category, with category headers shown to the left of
- * the list of settings.
- * <p/>
- * See <a href="http://developer.android.com/design/patterns/settings.html">
- * Android Design: Settings</a> for design guidelines and the <a
- * href="http://developer.android.com/guide/topics/ui/settings.html">Settings
- * API Guide</a> for more information on developing a Settings UI.
+ * This is the most messed up class right now
+ *
+ * Issues:
+ *    The number of depricated API calls is way too high... All of them need to go eventually
+ *
+ *    This only shows a simple settings page, which I am fine with for now. Proper design patterns
+ *    dictate the implementation of all types of settings pages though.
+ *
+ *    Need to add logging to each setting changed event... This is a top level TODO
+ *
+ *    It drives me crazy how dialogs are launched. I played with including them like they are
+ *    included in other activities, but kept on getting more and more cryptic UI errors. Ideally,
+ *    I think these would be launched by the HomeActivity. Instead, they are hacked and
+ *    in some cases reimplemented to launch from this class.
+ *
  */
 public class SettingsPreferenceActivity extends PreferenceActivity {
+    private static final boolean ALWAYS_SIMPLE_PREFS = true;
+    private boolean second_delete_result = false; //to pass results between dialogs... hack
+    private boolean delete_result = false; //to pass results between dialogs... hack
 
-    /**
-     * Determines whether to always show the simplified settings UI, where
-     * settings are presented in a single list. When false, settings are shown
-     * as a master/detail two-pane view on tablets. When true, a single pane is
-     * shown on tablets.
-     */
-    private static final boolean ALWAYS_SIMPLE_PREFS = false;
-    private boolean first_delete_result = false;
-    private boolean second_delete_result = false;
-    private boolean delete_result = false;
+    private final static String isValidFragmentTag = "SettingsPreferenceActivity:isValidFragment";
+    private final static String setupSimplePreferenceScreenTag = "SettingsPreferenceActivity:setupSimplePreferenceScreen";
+    private final static String confirmDeleteDialog = "all:ConfirmDeleteDialog:showFirstDialog";
+    private final static String setupSimplePreferenceScreenOnPreferenceClickTag = "SettingsPreferenceActivity:setupSimplePreferenceScreen:onPreferenceClick";
+
+    private final static String showSecondDialogTag = "all:ConfirmDeleteDialog:onCreateDialog";
+    private final static String showThirdDialogTag = "all:DeleteBuilderDialog:onCreateDialog";
+    private final static String onPreferenceChangedTag = "SettingsPreferenceActivity:onPreferenceChanged";
+
+    private static Context mContext;
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -60,36 +72,21 @@ public class SettingsPreferenceActivity extends PreferenceActivity {
 
     @Override
     protected boolean isValidFragment(String fragmentName) {
-        Log.d("SettingsPReferenceActivity:isValidFragment", fragmentName);
+        Log.d(isValidFragmentTag, fragmentName);
         return true;
-        //return SettingsPreferenceActivity.class.getName().equals(fragmentName);
     }
 
-
-    /**
-     * Shows the simplified settings UI if the device configuration if the
-     * device configuration dictates that a simplified, single-pane UI should be
-     * shown.
-     */
     private void setupSimplePreferencesScreen() {
         if (!isSimplePreferences(this)) {
             return;
         }
 
-        // In the simplified UI, fragments are not used at all and we instead
-        // use the older PreferenceActivity APIs.
-        /*
-        PreferenceCategory header1 = new PreferenceCategory(this);
-        header1 = new PreferenceCategory(this);
-        header1.setTitle(R.string.pref_header_user);
-        getPreferenceScreen().addPreference(header1);
-        */
+
+        mContext = this.getApplicationContext();
+
+
         addPreferencesFromResource(R.xml.pref_user);
 
-
-        // Add 'general' preferences.
-
-        // Add 'notifications' preferences, and a corresponding header.
         PreferenceCategory fakeHeader = new PreferenceCategory(this);
         fakeHeader = new PreferenceCategory(this);
         fakeHeader.setTitle(R.string.pref_header_power_company);
@@ -98,6 +95,7 @@ public class SettingsPreferenceActivity extends PreferenceActivity {
         addPreferencesFromResource(R.xml.pref_btns);
 
         try {
+            //These names should be refactored... they are a bit confusing
             bindPreferenceSummaryToValue(findPreference("power_company_name"));
             bindPreferenceSummaryToValue(findPreference("power_company_phone"));
             bindPreferenceSummaryToValue(findPreference("home_address_text"));
@@ -106,26 +104,28 @@ public class SettingsPreferenceActivity extends PreferenceActivity {
             bindPreferenceSummaryToValue(findPreference("gps_list"));
             bindPreferenceSummaryToValue(findPreference("gps_list_automatic"));
             bindPreferenceSummaryToValue(findPreference("map_update_pref"));
-//            bindPreferenceSummaryToValue(findPreference("wifiOrNetwork"));
+
+            //bindPreferenceSummaryToValue(findPreference("power_company_update"));
+            //bindPreferenceSummaryToValue(findPreference("wifi_or_network"));
+            //bindPreferenceSummaryToValue(findPreference("make_data_public"));
         }
         catch (java.lang.NullPointerException e) {
-            Log.w("settingsPreference:setupSimplePreference", e.toString());
+            Log.w(setupSimplePreferenceScreenTag, e.toString());
         }
-
 
         Preference button = (Preference)findPreference(getString(R.string.delete_data_btn));
         button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-                //RRRRRRR hack to get around some random UI exception.. these should be spawned from the home activity... doesn't seem to work
+                //RRRRRRR hack to get around various UI exceptions.. dialogs should be spawned
+                //from the home activity but that doesn't seem to work
                 showFirstDialog();
                 if (delete_result) {
-                    Log.d("settingsPreferenceDialog:onPreferenceClick", "deleting data");
+                    Log.d(setupSimplePreferenceScreenOnPreferenceClickTag , "deleting data");
                 }
 
-
                 /*
-                //code for what you want it to do
+                //template for how this should look
                 ConfirmDeleteDialog dialog = new ConfirmDeleteDialog();
                 //dialog.show(getContentTransitionManager(), "confirmDeleteDialog");
 
@@ -141,10 +141,10 @@ public class SettingsPreferenceActivity extends PreferenceActivity {
         });
     }
 
+    //HACK!
     private void showFirstDialog() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(SettingsPreferenceActivity.this);
-        final String tag = "all:ConfirmDeleteDialog:showFirstDialog";
         String message = getText(R.string.confirm_delete_dialog).toString();
         builder.setTitle("Confirm Delete");
         builder.setMessage(message)
@@ -155,18 +155,18 @@ public class SettingsPreferenceActivity extends PreferenceActivity {
                 })
                 .setNegativeButton(R.string.confirm_delete_dialog_negative, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        first_delete_result = false;
                     }
                 });
         builder.show();
     }
 
+    //HACK!
     private void showSecondDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(SettingsPreferenceActivity.this);
-        final String tag = "all:ConfirmDeleteDialog:onCreateDialog";
         final String random = UUID.randomUUID().toString().substring(0, 4);
         final EditText edittext = new EditText(SettingsPreferenceActivity.this);
         edittext.setTextColor(Color.RED);
+        System.out.println("Happy Birthday!!");
         builder.setView(edittext);
         edittext.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         edittext.addTextChangedListener(new TextWatcher() {
@@ -181,8 +181,8 @@ public class SettingsPreferenceActivity extends PreferenceActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                Log.w(tag, "HIT");
-                Log.w(tag, edittext.getText().toString());
+                Log.d(showSecondDialogTag, "HIT");
+                Log.d(showSecondDialogTag, edittext.getText().toString());
                 if (edittext.getText().toString().equals(random)) {
                     edittext.setTextColor(Color.GREEN);
                     second_delete_result = true;
@@ -202,8 +202,6 @@ public class SettingsPreferenceActivity extends PreferenceActivity {
                             builder.setMessage(R.string.failure_delete_dialog)
                                     .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int id) {
-
-
                                         }
                                     });
                             builder.show();
@@ -219,10 +217,10 @@ public class SettingsPreferenceActivity extends PreferenceActivity {
         builder.show();
     }
 
+    //HACK!
     public void showThirdDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(SettingsPreferenceActivity.this);
         boolean result = false;
-        final String tag = "all:DeleteBuilderDialog:onCreateDialog";
         final EditText edittext = new EditText(SettingsPreferenceActivity.this);
         edittext.setSingleLine(false);
         edittext.setImeOptions(EditorInfo.IME_FLAG_NO_ENTER_ACTION);
@@ -246,7 +244,7 @@ public class SettingsPreferenceActivity extends PreferenceActivity {
                     .setNeutralButton(R.string.confirm_delete_dialog_affirmative_three, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             String msg = edittext.getText().toString();
-                            Log.w("tag", msg);
+                            Log.d(showThirdDialogTag, msg);
                             send_delete(msg);
                         }
                     });
@@ -268,10 +266,12 @@ public class SettingsPreferenceActivity extends PreferenceActivity {
             intent.putExtra(IntentConfig.INTENT_DELETE_MSG, msg);
             startService(intent);
         } else {
-           showNoConnectionDialog();
+           showNoConnectionDialog(); //Want to fail fast here... make no promises that data has been
+                                     //deleted until we know... Probably want to add ACKs back
         }
     }
 
+    //ABSOLUTE HACK! Reimplementation of Dialogs.NoConnectionDialog. Kills me.
     public void showNoConnectionDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(SettingsPreferenceActivity.this);
         builder.setMessage(R.string.no_connection_dialog_delete)
@@ -282,8 +282,6 @@ public class SettingsPreferenceActivity extends PreferenceActivity {
         builder.show();
     }
 
-
-
     /**
      *
      *
@@ -292,28 +290,13 @@ public class SettingsPreferenceActivity extends PreferenceActivity {
     @Override
     public boolean onIsMultiPane() {
         return false; //HACK
-        //return isXLargeTablet(this) && !isSimplePreferences(this);
     }
 
-    /**
-     * Helper method to determine if the device has an extra-large screen. For
-     * example, 10" tablets are extra-large.
-     */
+
     private static boolean isXLargeTablet(Context context) {
         return false; //HACK
-        /*
-        return (context.getResources().getConfiguration().screenLayout
-                & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
-                */
     }
 
-    /**
-     * Determines whether the simplified settings UI should be shown. This is
-     * true if this is forced via {@link #ALWAYS_SIMPLE_PREFS}, or the device
-     * doesn't have newer APIs like {@link PreferenceFragment}, or the device
-     * doesn't have an extra-large screen. In these cases, a single-pane
-     * "simplified" settings UI should be shown.
-     */
     private static boolean isSimplePreferences(Context context) {
         return ALWAYS_SIMPLE_PREFS
                 || Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB
@@ -331,33 +314,28 @@ public class SettingsPreferenceActivity extends PreferenceActivity {
         }
     }
 
-    /**
-     * A preference value change listener that updates the preference's summary
-     * to reflect its new value.
-     */
+
     private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
         @Override
         public boolean onPreferenceChange(Preference preference, Object value) {
             String stringValue = value.toString();
-            Log.w("SettingsPreferenceActivity:onPreferenceChanged", preference.toString());
-            Log.w("SettingsPreferenceActivity:onPreferenceChanged", value.toString());
 
+            //Log.d(onPreferenceChangedTag, preference.toString());
+            //Log.d(onPreferenceChangedTag, value.toString());
+
+            DateFormat mDateFormat = DateFormat.getDateTimeInstance();
+            GridWatchLogger mGWLogger = new GridWatchLogger(mContext);
+            mGWLogger.log(mDateFormat.format(new Date()), "preference " + preference.toString() +  " changed to " + value.toString(), null);
 
             if (preference instanceof ListPreference) {
-                // For list preferences, look up the correct display value in
-                // the preference's 'entries' list.
                 ListPreference listPreference = (ListPreference) preference;
                 int index = listPreference.findIndexOfValue(stringValue);
-
-                // Set the summary to reflect the new value.
                 preference.setSummary(
                         index >= 0
                                 ? listPreference.getEntries()[index]
                                 : null);
 
             } else {
-                // For all other preferences, set the summary to the value's
-                // simple string representation.
                 preference.setSummary(stringValue);
             }
             return true;
@@ -394,19 +372,6 @@ public class SettingsPreferenceActivity extends PreferenceActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-
-
-
-            /*
-            addPreferencesFromResource(R.xml.pref_general);
-
-            // Bind the summaries of EditText/List/Dialog/Ringtone preferences
-            // to their values. When their values change, their summaries are
-            // updated to reflect the new value, per the Android Design
-            // guidelines.
-            bindPreferenceSummaryToValue(findPreference("example_text"));
-            bindPreferenceSummaryToValue(findPreference("example_list"));
-            */
         }
     }
 
@@ -419,15 +384,6 @@ public class SettingsPreferenceActivity extends PreferenceActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            /*
-            addPreferencesFromResource(R.xml.pref_notification);
-
-            // Bind the summaries of EditText/List/Dialog/Ringtone preferences
-            // to their values. When their values change, their summaries are
-            // updated to reflect the new value, per the Android Design
-            // guidelines.
-            bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
-            */
         }
     }
 
@@ -440,15 +396,6 @@ public class SettingsPreferenceActivity extends PreferenceActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            /*
-            addPreferencesFromResource(R.xml.pref_data_sync);
-
-            // Bind the summaries of EditText/List/Dialog/Ringtone preferences
-            // to their values. When their values change, their summaries are
-            // updated to reflect the new value, per the Android Design
-            // guidelines.
-            bindPreferenceSummaryToValue(findPreference("sync_frequency"));
-            */
         }
     }
 }

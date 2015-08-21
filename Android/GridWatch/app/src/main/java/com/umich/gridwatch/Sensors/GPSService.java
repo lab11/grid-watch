@@ -17,12 +17,15 @@ import java.util.ArrayList;
 
 /**
  * Created by nklugman on 5/29/15.
+ *
+ * Not currently used. GPS is getting grabbed at GWService... this should change soon
+ *
  */
 public class GPSService extends IntentService {
     private LocationManager locationManager;
     private LocationListener locationListener;
     private Location currentBestLocation;
-    ResultReceiver resultReceiver;
+    ResultReceiver mResultReceiver;
 
     public GPSService() {
         super("GPSService");
@@ -32,7 +35,7 @@ public class GPSService extends IntentService {
     protected void onHandleIntent(Intent workIntent) {
         Log.d("onHandleIntent", "HIT");
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        resultReceiver = workIntent.getParcelableExtra(IntentConfig.RECEIVER_KEY);
+        mResultReceiver = workIntent.getParcelableExtra(IntentConfig.RECEIVER_KEY);
         locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
                 checkLocation(location);
@@ -56,7 +59,7 @@ public class GPSService extends IntentService {
             currentBestLocation = location;
             Bundle bundle = new Bundle();
             bundle.putStringArrayList(IntentConfig.RESULT_KEY, turnLocToArray(currentBestLocation));
-            resultReceiver.send(IntentConfig.GPS, bundle);
+            mResultReceiver.send(IntentConfig.GPS, bundle);
             locationManager.removeUpdates(locationListener);
         }
     }

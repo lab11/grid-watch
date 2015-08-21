@@ -9,8 +9,10 @@ import android.os.ResultReceiver;
 import android.util.Log;
 
 import com.umich.gridwatch.Sensors.AccelerometerService;
+import com.umich.gridwatch.Sensors.CellTowersService;
 import com.umich.gridwatch.Sensors.FFTService;
 import com.umich.gridwatch.Sensors.MicrophoneService;
+import com.umich.gridwatch.Sensors.SSIDService;
 import com.umich.gridwatch.Utils.GridWatchEventType;
 import com.umich.gridwatch.Utils.IntentConfig;
 import com.umich.gridwatch.Utils.SensorConfig;
@@ -29,6 +31,8 @@ public class GridWatchEvent {
     private boolean mSixtyHzFinished = false;
     private boolean mMicrophoneFinished = false;
     private boolean mAskDialogEnded = false;
+    private boolean mSSIDsEnded = false;
+    private boolean mCellInfoEnded = false;
 
     private boolean mGatheredExtrasFinished = false;
     private boolean mAccelStarted = false;
@@ -36,26 +40,25 @@ public class GridWatchEvent {
     private boolean mSixtyHzStarted = false;
     private boolean mGatheredExtrasStarted = false;
     private boolean mAskDialogStarted = false;
+    private boolean mSSIDsStarted = false;
+    private boolean mCellInfoStarted = false;
 
     private int cur_index;
 
     private Context mContext;
     private long mTimestamp;
 
-    private static WorkEventResultReceiver resultReceiver;
+    private static WorkEventResultReceiver m_resultReceiver;
     private static Intent intent;
 
     private boolean mGCMType = false;
     private boolean mGCMAskResult;
 
-    private boolean mLocalFFT;
-
-    private static String recordingFileName = "";
-
-    private static String mResult_Msg = "";
-    private static String mFFT_Msg = "";
-
-
+    private static String mResultMsg = "";
+    private static String mFFTMsg = "";
+    private static String mFFTType = "";
+    private static String mSSIDs = "";
+    private static String mCellInfo = "";
     private static boolean mFailed = false;
 
     private boolean needAccelerometerSamples () {
@@ -128,6 +131,40 @@ public class GridWatchEvent {
         }
         return false;
     }
+    public boolean needSSIDs() {
+        Log.d("NEED SSIDS", "HIT");
+        switch (mEventType) {
+            case GCM_ACCEL:
+            case GCM_ASK:
+            case GCM_ALL:
+                return true;
+        }
+        if (!SensorConfig.SSIDs_ON) {
+            return false;
+        }
+        switch (mEventType) {
+            case UNPLUGGED:
+                return true;
+        }
+        return false;
+    }
+    public boolean needCellInfo() {
+        switch (mEventType) {
+            case GCM_ACCEL:
+            case GCM_ASK:
+            case GCM_ALL:
+                return true;
+        }
+        if (!SensorConfig.CELL_INFO_ON) {
+            return false;
+        }
+        switch (mEventType) {
+            case UNPLUGGED:
+            case USR_UNPLUGGED:
+                return true;
+        }
+        return false;
+    }
 
 
     public String getTimeStampMS() {
@@ -140,7 +177,7 @@ public class GridWatchEvent {
         mTimestamp = System.currentTimeMillis();
 
         //Gets Results Back From Sensors
-        resultReceiver = new WorkEventResultReceiver(null);
+        m_resultReceiver = new WorkEventResultReceiver(null);
     }
 
     public void setGCMAskResult(boolean result) {
@@ -158,10 +195,15 @@ public class GridWatchEvent {
     }
 
     public String getFailureMessage() {
-        return mResult_Msg;
+        return mResultMsg;
     }
 
-    public String getFFTMessage () { return mFFT_Msg; }
+    public String getFFTMessage () { return mFFTMsg; }
+    public String getmFFTType () { return mFFTType; }
+
+    public String getSSIDMessage() {return mSSIDs; }
+
+    public String getCellInfoMessage() {return mCellInfo;}
 
     public boolean didFail() {
         return mFailed;
@@ -207,6 +249,22 @@ public class GridWatchEvent {
             }
             return false;
         }
+        if (needSSIDs() && !mSSIDsEnded) {
+            if (!mSSIDsStarted) {
+                Log.d(readyForTransmissionTag, "starting SSIDs");
+                startSSIDs();
+            } else {
+                Log.d(readyForTransmissionTag, "not done with SSIDs yet");
+            }
+        }
+        if (needCellInfo() && !mCellInfoEnded) {
+            if (!mCellInfoStarted) {
+                Log.d(readyForTransmissionTag, "starting Cell Info");
+                startCellInfo();
+            } else {
+                Log.d(readyForTransmissionTag, "not done with Cell Info yet");
+            }
+        }
         if (!mGatheredExtrasFinished) {
             if (!mGatheredExtrasStarted) {
                 Log.d(readyForTransmissionTag, "starting gathering extras");
@@ -247,15 +305,24 @@ public class GridWatchEvent {
 
     //TODO public function for testing... restrict later
     //TODO add in parameterizable FFT...
-    public void start60Hz() {
+    private void start60Hz() {
         mSixtyHzStarted = true;
         launch_service(FFTService.class, null);
     }
 
+    private void startSSIDs() {
+        mSSIDsStarted = true;
+        launch_service(SSIDService.class, null);
+    }
+
+    private void startCellInfo() {
+        mCellInfoEnded = true;
+        launch_service(CellTowersService.class, null);
+    }
 
     private void launch_service(Class a, String msg) {
         intent = new Intent(mContext, a);
-        intent.putExtra(IntentConfig.RECEIVER_KEY, resultReceiver);
+        intent.putExtra(IntentConfig.RECEIVER_KEY, m_resultReceiver);
         if (msg != null) {
             intent.putExtra(IntentConfig.MESSAGE_KEY, msg);
         }
@@ -280,7 +347,7 @@ public class GridWatchEvent {
                 Log.d(onReceiveResultTag, "ACCEL");
                 if (!resultData.getString(IntentConfig.RESULT_KEY).equals(IntentConfig.RESULT_PASSED)) {
                     mFailed = true;
-                    mResult_Msg = "ACCELERATION";
+                    mResultMsg = "ACCELERATION";
                 }
                 mAccelFinished = true;
             }
@@ -288,26 +355,36 @@ public class GridWatchEvent {
                 Log.d(onReceiveResultTag, "MICROPHONE");
                 if (!resultData.getString(IntentConfig.RESULT_KEY).equals(IntentConfig.RESULT_PASSED)) {
                     mFailed = true;
-                    mResult_Msg = "MICROPHONE";
+                    mResultMsg = "MICROPHONE";
                 }
-                recordingFileName = resultData.getString(IntentConfig.MESSAGE_KEY);
                 mMicrophoneFinished = true;
             }
             else if(resultCode == IntentConfig.FFT){
                 Log.d(onReceiveResultTag, "FFT");
                 if (!resultData.getString(IntentConfig.RESULT_KEY).equals(IntentConfig.RESULT_PASSED)) {
                     mFailed = true;
-                    mResult_Msg = "FFT";
+                    mResultMsg = "FFT";
                 }
                 Log.d(onReceiveResultTag, "SIXTYHZ: " + String.valueOf(mSixtyHzFinished));
-                mFFT_Msg = resultData.getString(IntentConfig.FFT_CNT);
+                mFFTMsg = resultData.getString(IntentConfig.FFT_CNT);
+                mFFTType = resultData.getString(IntentConfig.FFT_TYPE);
                 mSixtyHzFinished = true;
             }
             else if(resultCode == IntentConfig.ASK_DIALOG) {
                 Log.d(onReceiveResultTag, "ASK");
                 mAskDialogEnded = true;
             }
-            else{
+            else if (resultCode == IntentConfig.SSIDs) {
+                Log.d(onReceiveResultTag, "SSIDs");
+                mSSIDs = resultData.getString(IntentConfig.MESSAGE_KEY);
+                mSSIDsEnded = true;
+            }
+            else if (resultCode == IntentConfig.CELL_INFO) {
+                Log.d(onReceiveResultTag, "CELL_INFO");
+                mCellInfo = resultData.getString(IntentConfig.MESSAGE_KEY);
+                mCellInfoEnded = true;
+            }
+            else {
                 Log.w(onReceiveResultTag, String.valueOf(resultCode));
             }
         }
