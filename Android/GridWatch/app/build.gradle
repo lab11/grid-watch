@@ -5,18 +5,24 @@ apply plugin: 'com.google.gms.google-services'
 
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.0"
+    compileSdkVersion 23
+    buildToolsVersion '23.0.2'
+
+    useLibrary 'org.apache.http.legacy'
+
+
+
 
     defaultConfig {
         applicationId "com.umich.gridwatch"
-        minSdkVersion 14
-        targetSdkVersion 22
-        versionCode 10
-        versionName "2.0"
+        minSdkVersion 15
+        targetSdkVersion 23
+        versionCode 12
+        versionName "2.2"
         multiDexEnabled true
 
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -27,25 +33,23 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile fileTree(dir: 'libs', include: 'Parse-*.jar')
-    compile 'com.parse.bolts:bolts-android:1.+'
-    compile 'com.android.support:appcompat-v7:21.0.3'
+    compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.github.dmytrodanylyk.android-process-button:library:1.0.3'
     compile 'ch.acra:acra:4.5.0'
-    compile 'com.google.android.gms:play-services:7.5.+'
-    compile files("./libs/TarsosDSP-1.7.jar")
-    compile 'com.android.support:multidex:1.0.0'
+    compile files('./libs/TarsosDSP-Android-2.0.jar')
+    compile 'com.android.support:multidex:1.0.1'
+    compile 'com.android.support:design:23.1.1'
+    compile 'com.mcxiaoke.volley:library-aar:1.0.0'
+    compile 'com.android.support:recyclerview-v7:23.1.1'
+    compile 'com.google.android.gms:play-services-gcm:8.3.0'
 
-
-
+    //compile 'com.google.android.gms:play-services:8.3.0'
     //apt 'com.bluelinelabs:logansquare-compiler:1.1.0'
     //compile 'com.bluelinelabs:logansquare:1.1.0'
-
-    compile('com.mapbox.mapboxsdk:mapbox-android-sdk:0.7.3@aar') {
+    compile('com.mapbox.mapboxsdk:mapbox-android-sdk:3.2.0@aar') {
         transitive = true
     }
     compile 'org.apache.commons:commons-lang3:3.0'
-
     compile 'com.github.dkharrat.nexusdialog:nexusdialog:0.2.2'
     //https://github.com/dkharrat/NexusDialog
     compile 'com.github.amlcurran.showcaseview:library:5.0.0'
@@ -55,8 +59,6 @@ dependencies {
     compile 'com.github.techfreak:wizardpager:1.0.0'
     compile 'com.github.rwl:jtransforms:2.4.0'
     //https://github.com/TechFreak/WizardPager
-    compile files('libs/Parse-1.9.2/Parse-1.9.2.jar')
     //https://github.com/Nimrodda/WizarDroid
     compile 'org.codepond:wizardroid:1.3.0'
-
 }

@@ -9,6 +9,13 @@
     <string name="title_activity_settings">settings</string>
     <string name="title_log_view_activity">Log</string>
 
+
+
+    <string name="open_whatsup_btn">Open WhatsApp</string>
+    <string name="send_chat_btn">Send</string>
+    <string name="search_chat_label">Search Chat Region</string>
+
+
     <string name="report">Report</string>
     <string name="cancel">Cancel</string>
     <string name="report_dialog">To report a power outage, type the following characters and press report.</string>
@@ -43,6 +50,9 @@
     <string name="ask_map_update_dialog_remember_affirmative">Always Yes</string>
 
 
+    <string name="action_chat">Chat</string>
+
+
     <string name="confirm_delete_dialog">Are you sure you want to delete your data? \n This can not be undone. \n Please consider the value your data has for researchers in your area.</string>
     <string name="confirm_delete_dialog_affirmative">Yes, please delete my data.</string>
     <string name="confirm_delete_dialog_negative">No.</string>
@@ -53,7 +63,6 @@
 
     <string name="confirm_delete_dialog_three">Would you mind telling us why you deleted your data? You can leave this blank if you want.</string>
     <string name="confirm_delete_dialog_affirmative_three">Send.</string>
-
 
     <string name="action_tutorial">Tutorial</string>
 
@@ -94,7 +103,8 @@
     <string name="consent_dialog_affirmative">"I consent."</string>
     <string name="consent_dialog_negative">"I do not consent."</string>
 
-    <string name="default_alert_server">http://api.grid.watch:8080/message</string>
+    <string name="default_alert_server">http://54.175.143.44:8080/message</string>
+    <string name="kafka_topic">gridwatch_v2</string>
 
     <string name="label_your_beta_name">Beta Name</string>
     <string name="hint_your_beta_name">e.g. AA0001</string>
@@ -139,5 +149,33 @@
 
 
     <string name="delete_data_btn">Delete Your Data</string>
+
+
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="hint_name">Full Name</string>
+    <string name="hint_category_name">Category Name</string>
+    <string name="hint_email">Email</string>
+    <string name="err_msg_name">Enter full name</string>
+    <string name="err_msg_email">Enter valid email address</string>
+    <string name="title_activity_chat_room_discussion">ChatRoomDiscussionActivity</string>
+    <string name="action_logout">Logout</string>
+    <string name="action_create_new_category">Create New Discussion</string>
+    <string name="title_activity_create_category">Create Category</string>
+    <string name="hint_category_and_user_optional">All location information is optional.</string>
+    <string name="hint_category_optional">Location is used to search chat rooms.</string>
+    <string name="hint_user_optional">Location is used to give you local content.</string>
+    <string name="hint_category_and_user_location">Use phones location</string>
+    <string name="hint_category_and_user_city">Enter city</string>
+    <string name="hint_category_and_user_country">Enter country</string>
+    <string name="hint_category_and_user_state">Enter state</string>
+    <string name="about_chat_dialog">Global GridWatch chat. To subscribe to a topic, hold the topic name until text turns green. To unsubscribe, hold the topic name until text turns gray. You automatically subscribe to topics you create.</string>
+
+    <string name="create_category_name_1">Create Category</string>
+    <string name="chat_name_1">Chat</string>
+    <string name="login_name_1">Login</string>
+    <string name="gps_err">Can not access location!</string>
+
+    <string name="btn_login">Login</string>
+    <string name="btn_create">Create Account</string>
 
 </resources>

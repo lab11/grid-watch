@@ -1,0 +1,21 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" tools:context=".mains">
+    <item android:id="@+id/action_about_chat" android:title="@string/action_about"
+        android:orderInCategory="100" app:showAsAction="never" />
+
+
+    <item
+        android:id="@+id/action_create_new_category"
+        android:orderInCategory="100"
+        android:title="@string/action_create_new_category"
+        app:showAsAction="never"
+        />
+    <item
+        android:id="@+id/action_logout"
+        android:orderInCategory="100"
+        android:title="@string/action_logout"
+        app:showAsAction="never" />
+
+
+</menu>

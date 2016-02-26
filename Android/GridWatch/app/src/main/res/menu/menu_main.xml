@@ -5,9 +5,11 @@
         android:orderInCategory="100" app:showAsAction="never" />
 
 
-    <item android:id="@+id/action_tutorial" android:title="@string/action_tutorial"
+   <item android:id="@+id/action_tutorial" android:title="@string/action_tutorial"
         android:orderInCategory="100" app:showAsAction="never" />
 
+    <item android:id="@+id/action_chat" android:title="@string/action_chat"
+        android:orderInCategory="100" app:showAsAction="never" />
 
     <item android:id="@+id/action_view_log" android:title="@string/action_view_log"
         android:orderInCategory="100" app:showAsAction="never" />

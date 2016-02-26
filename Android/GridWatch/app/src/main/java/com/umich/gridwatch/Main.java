@@ -2,9 +2,15 @@ package com.umich.gridwatch;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.support.multidex.MultiDex;
+import android.text.TextUtils;
 import android.util.Log;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
+import com.umich.gridwatch.Chat.helper.ChatPreferenceManager;
 import com.umich.gridwatch.Utils.Private;
 
 import org.acra.ReportField;
@@ -48,6 +54,13 @@ import org.acra.sender.HttpSender;
 public class Main extends Application {
 
     private final static String onCreateTag = "Main:onCreate";
+    private final static String mainTag = "Main";
+
+
+    private RequestQueue mRequestQueue;
+    private static Main mInstance;
+    private ChatPreferenceManager pref;
+
 
     @Override
     public void onCreate() {
@@ -56,6 +69,8 @@ public class Main extends Application {
         //if (!SensorConfig.debug) {
         //    ACRA.init(this); //TODO disabled for testing... enable before release. This captures all crashes to an cloudant instance and launches a UI allowing for the user to add comments.
         //}
+        mInstance = this;
+
     }
 
     /*
@@ -66,4 +81,48 @@ public class Main extends Application {
         super.attachBaseContext(base);
         MultiDex.install(this);
     }
+
+    public static synchronized Main getInstance() {
+        return mInstance;
+    }
+
+    public RequestQueue getRequestQueue() {
+        if (mRequestQueue == null) {
+            mRequestQueue = Volley.newRequestQueue(getApplicationContext());
+        }
+
+        return mRequestQueue;
+    }
+
+    public ChatPreferenceManager getPrefManager() {
+        if (pref == null) {
+            pref = new ChatPreferenceManager(this);
+        }
+
+        return pref;
+    }
+
+    public <T> void addToRequestQueue(Request<T> req, String tag) {
+        req.setTag(TextUtils.isEmpty(tag) ? mainTag : tag);
+        getRequestQueue().add(req);
+    }
+
+    public <T> void addToRequestQueue(Request<T> req) {
+        req.setTag(mainTag);
+        getRequestQueue().add(req);
+    }
+
+    public void cancelPendingRequests(Object tag) {
+        if (mRequestQueue != null) {
+            mRequestQueue.cancelAll(tag);
+        }
+    }
+
+    public void logout() {
+        pref.logout();
+        Intent intent = new Intent(this, HomeActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+    }
+
 }

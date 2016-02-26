@@ -1,0 +1,15 @@
+
+SERVER:
+    write a trust classifier bolt using results from alert gather
+
+
+CHAT:
+    subscribe is bad -> text colors don't persist
+    location based searching
+    suggest deletion
+
+MAPPING:
+    Map local events
+    Map updates based on location
+    settings for outage persistance times
+

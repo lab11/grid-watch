@@ -32,6 +32,7 @@ public class IntentConfig {
     public final static String INTENT_EXTRA_EVENT_MANUAL_ON = "event_manual_on";
     public final static String INTENT_EXTRA_EVENT_MANUAL_OFF = "event_manual_off";
     public final static String INTENT_EXTRA_EVENT_MANUAL_WD = "event_manual_wd";
+    public final static String INTENT_EXTRA_EVENT_MANUAL_INSTALL = "event_manual_install";
     public final static String INTENT_MANUAL_KEY = "manual_state";
 
     public final static String INTENT_EXTRA_EVENT_GCM_ALL = "GCM_ALL";
@@ -45,7 +46,9 @@ public class IntentConfig {
     public final static String INTENT_EXTRA_EVENT_GCM_ASK_RESULT = "gcm_ask_result";
     public final static String INTENT_EXTRA_EVENT_GCM_ASK_INDEX = "gcm_ask_index";
     public final static String INTENT_EXTRA_EVENT_GCM_MAP = "GCM_MAP";
-
+    public final static String INTENT_EXTRA_EVENT_GCM_MAP_UPDATE = "GCM_MAP";
+    public final static String INTENT_EXTRA_EVENT_GCM_MAP_POINTS = "GCM_POINTS";
+    public final static String INTENT_EXTRA_EVENT_GCM_MAP_POINT_KEY = "GCM_POINTS_KEY";
 
     //TO BE USED FOR ALL UI BEING AT THE HOME ACTIVITY
     public final static String INTENT_TO_HOME = "home_passback";

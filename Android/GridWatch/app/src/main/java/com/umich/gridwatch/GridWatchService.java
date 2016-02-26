@@ -46,6 +46,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONArray;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -77,13 +78,16 @@ public class GridWatchService extends Service {
     private final static String REAL = "real";
 
     // This requires a bit more testing. I found that if the queue of events gets too large, the app can run out of memory and crash. This showed on the Blu Dash JR phones. The queue is cleared a couple times redundently. 20 is chosen somewhat arbitrarily and can likely be much higher.
-    private final static int MAX_QUEUE_SIZE = 20;
+    private final static int MAX_QUEUE_SIZE = 50;
 
     // Debug Tags
     private final static String onCreateTag = "GridWatchService:onCreate";
     private final static String onDestoryTag = "GridWatchService:onDestroy";
     private final static String onStartCommandTag = "GridWatchService:onStartCommand";
     private final static String onGCMAskResultTag = "GridWatchService:onGCMAskResult";
+    private final static String onGCMMapUpdateTag = "GridWatchService:onGCMMapUpdate";
+    private final static String onGCMParsePointsTag = "GridWatchService:onGCMParsePoints";
+
     private final static String broadcastReceiverPowerActionReceiverTag = "GridWatchService:BroadcastReceiver:PowerActionReceiver";
     private final static String broadcastReceiverConnectionListenerReceiverTag = "GridWatchService:BroadcastReceiver:ConnectionListenerReceiver";
     private final static String onPowerConnectedTag = "GridWatchService:onPowerConnected";
@@ -159,7 +163,6 @@ public class GridWatchService extends Service {
 
     }
 
-
     public GridWatchEvent getEvent(int i) {
         return mEvents.get(i);
     }
@@ -196,6 +199,10 @@ public class GridWatchService extends Service {
                 Log.d(onStartCommandTag, "power WD");
                 onWD();
             }
+            else if (intent.getExtras().getString(IntentConfig.INTENT_MANUAL_KEY).equals(IntentConfig.INTENT_EXTRA_EVENT_MANUAL_INSTALL)) {
+                Log.d(onStartCommandTag, "install");
+                onInstall();
+            }
             else if (intent.getExtras().getString(IntentConfig.INTENT_MANUAL_KEY).equals(IntentConfig.INTENT_EXTRA_EVENT_GCM_ASK)) {
                 Log.d(onStartCommandTag, "GCM ask");
                 onGCMAsk();
@@ -204,6 +211,11 @@ public class GridWatchService extends Service {
                 Log.d(onStartCommandTag, "GCM ask result");
                 onGCMAskResult(intent.getExtras().getBoolean(IntentConfig.INTENT_EXTRA_EVENT_GCM_ASK_RESULT),
                         intent.getExtras().getInt(IntentConfig.INTENT_EXTRA_EVENT_GCM_ASK_INDEX));
+            }
+            else if (intent.getExtras().getString(IntentConfig.INTENT_MANUAL_KEY).equals(IntentConfig.INTENT_EXTRA_EVENT_GCM_MAP_UPDATE)) {
+                Log.d(onStartCommandTag, "GCM map Update ");
+                String points = intent.getExtras().getString(IntentConfig.INTENT_EXTRA_EVENT_GCM_MAP_POINT_KEY);
+                onGCMMapUpdate(points);
             }
             else if (intent.getExtras().getString(IntentConfig.INTENT_MANUAL_KEY).equals(IntentConfig.INTENT_EXTRA_EVENT_GCM_TYPE)) {
                 Log.d(onStartCommandTag, "GCM event");
@@ -223,6 +235,18 @@ public class GridWatchService extends Service {
         Log.w(onGCMAskResultTag, "hit");
         mEvents.get(index).setGCMAskResult(result);
     }
+
+    private void onGCMMapUpdate(String points) {
+        Log.w(onGCMMapUpdateTag, "hit");
+        Log.w(onGCMMapUpdateTag, points);
+        Intent aIntent = new Intent(IntentConfig.INTENT_NAME);
+        aIntent.putExtra(IntentConfig.INTENT_TO_HOME, IntentConfig.INTENT_EXTRA_EVENT_GCM_MAP_UPDATE);
+        aIntent.putExtra(IntentConfig.INTENT_EXTRA_EVENT_GCM_MAP_POINT_KEY, points);
+        broadcastIntent(aIntent);
+
+    }
+
+
 
     // Handles the call back for when various power actions occur
     private BroadcastReceiver mPowerActionReceiver = new BroadcastReceiver() {
@@ -312,6 +336,14 @@ public class GridWatchService extends Service {
         //TODO, do we want this? Is the energy cost too high?
         updateLocation();
         GridWatchEvent gwevent = new GridWatchEvent(GridWatchEventType.WD, this.getApplicationContext());
+        mEvents.add(gwevent);
+        processEvents();
+    }
+
+    private void onInstall() {
+        //TODO, do we want this? Is the energy cost too high?
+        updateLocation();
+        GridWatchEvent gwevent = new GridWatchEvent(GridWatchEventType.INSTALL, this.getApplicationContext());
         mEvents.add(gwevent);
         processEvents();
     }
@@ -719,7 +751,7 @@ public class GridWatchService extends Service {
             }
 
             // Add in the headers for the GW servers
-            nameValuePairs.add(new BasicNameValuePair("topic", "gridwatch"));
+            nameValuePairs.add(new BasicNameValuePair("topic", getString(R.string.kafka_topic)));
             nameValuePairs.add(new BasicNameValuePair("key", "event"));
             nameValuePairs.add(new BasicNameValuePair("message", msg));
 

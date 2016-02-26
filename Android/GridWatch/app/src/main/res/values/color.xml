@@ -4,5 +4,9 @@
     <color name="primaryDark">#0D47A1</color>
     <color name="accent">#1565C0</color>
 
-
+    <color name="colorPrimary">#7B1FA2</color>
+    <color name="colorPrimaryDark">#6A1B9A</color>
+    <color name="colorAccent">#EA80FC</color>
+    <color name="list_divider">#dedede</color>
+    <color name="bg_bubble_self">#E1E1E1</color>
 </resources>

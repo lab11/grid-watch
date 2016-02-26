@@ -12,11 +12,13 @@
 
     <string name="pref_title_location_services">Location Services Manual</string>
     <string-array name="pref_location_titles">
-        <item>Fine</item>
-        <item>Medium</item>
-        <item>Low</item>
+        <item>Cell Tower Only (default)</item>
+        <item>GPS Fine</item>
+        <item>GPS Medium</item>
+        <item>GPS Low</item>
     </string-array>
     <string-array name="pref_location_values">
+        <item>3</item>
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -24,11 +26,13 @@
 
     <string name="pref_title_location_services_auto">Location Services Automatic</string>
     <string-array name="pref_location_titles_automatic">
-        <item>Fine</item>
-        <item>Medium</item>
-        <item>Low</item>
+        <item>Cell Tower Only (default)</item>
+        <item>GPS Fine</item>
+        <item>GPS Medium</item>
+        <item>GPS Low</item>
     </string-array>
     <string-array name="pref_location_values_automatic">
+        <item>3</item>
         <item>0</item>
         <item>1</item>
         <item>2</item>

@@ -1,34 +1,64 @@
 package com.umich.gridwatch.Maps;
 
+import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.location.Criteria;
+import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.mapbox.mapboxsdk.annotations.Icon;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
+import com.mapbox.mapboxsdk.annotations.MarkerOptions;
+import com.mapbox.mapboxsdk.annotations.Polygon;
+import com.mapbox.mapboxsdk.annotations.PolygonOptions;
+import com.mapbox.mapboxsdk.constants.Style;
 import com.mapbox.mapboxsdk.geometry.LatLng;
-import com.mapbox.mapboxsdk.overlay.Icon;
-import com.mapbox.mapboxsdk.overlay.Marker;
-import com.mapbox.mapboxsdk.overlay.UserLocationOverlay;
+import com.mapbox.mapboxsdk.layers.CustomLayer;
 import com.mapbox.mapboxsdk.views.MapView;
 import com.umich.gridwatch.R;
 import com.umich.gridwatch.Utils.GridWatchLogger;
+import com.umich.gridwatch.Utils.Private;
+
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class MapFragment extends Fragment {
+    private String onInitMapTag = "MapFragmet:InitMap";
+    private String onDrawPolygonTag = "MapFragmet:DrawPolygon";
+    private String onPurgePolygonsTag = "MapFragmet:onPurgePolygons";
+
+    private long poly_index = 0;
+
+    private long TIME_THRESH = 10000;
+    private long PURGE_THRESH = 100;
+    private long MOST_RECENT_PURGE = System.currentTimeMillis();
 
     private LocationManager mLocationManager;
     private GridWatchLogger mGWLogger;
     private final static int num_markers = 20; //go back in the log this many to place markers
+
+    private ArrayList<GWPolygon> current_polygons;
+
+
+    private MapView mv = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -36,22 +66,88 @@ public class MapFragment extends Fragment {
 
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.activity_map, container, false);
-        MapView mv = (MapView) view.findViewById(R.id.mapview);
+        mv = (MapView) view.findViewById(R.id.mapview);
+        mv.setAccessToken(Private.map_access);
 
-        init_map(mv);
-        load_log(mv);
-        load_world(mv);
+        current_polygons = new ArrayList<>();
+
+        initMap(mv, savedInstanceState);
+        //load_log(mv);
+        //load_world(mv);
         return view;
 
     }
 
-    private void init_map(MapView mv) {
-        mv.setUserLocationEnabled(true);
-        mv.setUserLocationTrackingMode(UserLocationOverlay.TrackingMode.NONE);
-        mv.setCenter(mv.getUserLocation());
+    private static class GWPolygon {
+        private long created_time;
+        private Polygon poly;
 
-        mv.setZoom(10);
-        mv.setUserLocationRequiredZoom(10);
+        private GWPolygon(long created_time, Polygon poly) {
+            this.created_time = created_time;
+            this.poly = poly;
+        }
+
+        public long getCreated_time() {
+            return created_time;
+        }
+
+        public Polygon getPoly() {
+            return poly;
+        }
+    }
+
+    private void purgePolygons() {
+        Log.e(onPurgePolygonsTag, "hit");
+        Log.e(onPurgePolygonsTag + ":firstIF", String.valueOf(MOST_RECENT_PURGE - System.currentTimeMillis()));
+
+        if ((System.currentTimeMillis() - MOST_RECENT_PURGE) > PURGE_THRESH) { //Don't want to purge each message
+            Log.e(onPurgePolygonsTag, "purging... normal op");
+            for (int i = 0; i < current_polygons.size(); i++) {
+                GWPolygon cur = current_polygons.get(i);
+                if ((System.currentTimeMillis() - cur.getCreated_time()) > TIME_THRESH) { //Only want to throw away old things
+                    Log.e(onPurgePolygonsTag, "removing polygon:" + String.valueOf(cur.getPoly().getId()));
+
+                    current_polygons.remove(i);
+                    mv.removeAnnotation(cur.getPoly());
+                }
+            }
+        }
+    }
+
+    public void drawPolygon(ArrayList<LatLng> to_draw) {
+        PolygonOptions p = new PolygonOptions()
+                .addAll(to_draw)
+                .strokeColor(Color.parseColor("#3bb2d0"))
+                .fillColor(Color.parseColor("#3bb2d0"));
+        Polygon poly = p.getPolygon();
+        purgePolygons();
+        current_polygons.add(new GWPolygon(System.currentTimeMillis(), poly));
+        mv.addPolygon(p);
+    }
+
+    private void initMap(MapView mv, Bundle savedInstanceState) {
+
+        mv.setStyleUrl(Style.EMERALD);
+        LocationManager service = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        String provider = service.getBestProvider(criteria, false);
+        Location location = service.getLastKnownLocation(provider);
+        LatLng cur_loc = null;
+        if (location != null) {
+            cur_loc = new LatLng(location.getLatitude(), location.getLongitude());
+        }
+        if (cur_loc != null) {
+            Log.e(onInitMapTag, cur_loc.toString());
+            mv.setLatLng(cur_loc);
+            mv.setZoom(10);
+        } else {
+            Log.e(onInitMapTag, "cur loc null");
+            cur_loc = new LatLng(46.2000,6.1500); //set to geneva
+            mv.setLatLng(cur_loc);
+            mv.setZoom(5);
+        }
+        mv.setZoomControlsEnabled(true);
+        mv.onCreate(savedInstanceState);
 
     }
 
@@ -130,16 +226,57 @@ public class MapFragment extends Fragment {
 
     private void draw_marker(MapView mapView, LatLng latLng, String type, int count) {
 
-        Marker marker = new Marker(mapView, "Log Number " + String.valueOf(count), "This marker represents a " + type + " report that was " + String.valueOf(count) + " from the most current report.", latLng);
-        Drawable d = getResources().getDrawable(R.drawable.power_out_icon);
-        Log.w("draw_marker", type);
+        Context context = getActivity().getApplicationContext();
+        IconFactory mIconFactory = IconFactory.getInstance(context);
+        Drawable d = ContextCompat.getDrawable(context, R.drawable.power_out_icon);
         if (type.equals("plugged")) {
-            d = getResources().getDrawable(R.drawable.power_on_icon);
+            d = ContextCompat.getDrawable(context, R.drawable.power_on_icon);
         }
-        Icon marker_img = new Icon(d);
-        marker.setIcon(marker_img);
-        mapView.addMarker(marker);
-        mapView.setCenter(latLng);
+        Icon markerIcon = mIconFactory.fromDrawable(d);
+        String titleStr = "Log Number " + String.valueOf(count);
+        String infoStr = "This marker represents a " + type + " report that was " + String.valueOf(count) + " from the most current report.";
+        mapView.addMarker(new MarkerOptions()
+                .position(latLng)
+                .title(titleStr)
+                .snippet(infoStr)
+                .icon(markerIcon));
+
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mv.onStart();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mv.onResume();
+    }
+
+    @Override
+    public void onPause()  {
+        super.onPause();
+        mv.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mv.onStop();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mv.onDestroy();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mv.onSaveInstanceState(outState);
     }
 
 

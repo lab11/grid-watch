@@ -43,6 +43,8 @@ public class GridWatchEvent {
     private boolean mSSIDsStarted = false;
     private boolean mCellInfoStarted = false;
 
+    public boolean mHasBeenLogged = false; //hack for now
+
     private int cur_index;
 
     private Context mContext;
@@ -63,6 +65,7 @@ public class GridWatchEvent {
 
     private boolean needAccelerometerSamples () {
         switch (mEventType) {
+            case INSTALL:
             case GCM_ACCEL:
             case GCM_ASK:
             case GCM_ALL:
@@ -81,6 +84,7 @@ public class GridWatchEvent {
         switch (mEventType) {
             case GCM_MIC:
             //case GCM_ASK:
+            case INSTALL:
             case GCM_ALL:
                 return true;
         }
@@ -100,6 +104,7 @@ public class GridWatchEvent {
         switch (mEventType) {
             case GCM_FFT:
             case GCM_ASK:
+            case INSTALL:
             case GCM_ALL:
                 return true;
         }
@@ -119,6 +124,7 @@ public class GridWatchEvent {
         switch (mEventType){
             case GCM_GPS:
             case GCM_ASK:
+            case INSTALL:
             case GCM_ALL:
                 return true;
         }
@@ -136,6 +142,7 @@ public class GridWatchEvent {
         switch (mEventType) {
             case GCM_ACCEL:
             case GCM_ASK:
+            case INSTALL:
             case GCM_ALL:
                 return true;
         }
@@ -152,6 +159,7 @@ public class GridWatchEvent {
         switch (mEventType) {
             case GCM_ACCEL:
             case GCM_ASK:
+            case INSTALL:
             case GCM_ALL:
                 return true;
         }
@@ -164,6 +172,9 @@ public class GridWatchEvent {
                 return true;
         }
         return false;
+    }
+    public boolean needOfflineLogging() {
+        return true;
     }
 
 

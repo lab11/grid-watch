@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -26,25 +27,30 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import com.cocoahero.android.geojson.GeoJSON;
-import com.cocoahero.android.geojson.GeoJSONObject;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
 import com.dd.processbutton.iml.ActionProcessButton;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.mapbox.mapboxsdk.geometry.BoundingBox;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.umich.gridwatch.Dialogs.AboutDialog;
 import com.umich.gridwatch.Dialogs.AskDialog;
 import com.umich.gridwatch.Dialogs.AskMapUpdateDialog;
 import com.umich.gridwatch.Dialogs.ConsentDialog;
 import com.umich.gridwatch.Dialogs.ReportDialog;
-import com.umich.gridwatch.GCM.GCMPreferences;
-import com.umich.gridwatch.GCM.GCMRegistrationIntentService;
-import com.umich.gridwatch.Intro.TutorialActivity;
+import com.umich.gridwatch.GCM.GCMConfig;
 import com.umich.gridwatch.Maps.MapFragment;
 import com.umich.gridwatch.Maps.UnconnectedMapFragment;
+import com.umich.gridwatch.Tutorial.TutorialActivity;
 import com.umich.gridwatch.Utils.IntentConfig;
 import com.umich.gridwatch.Utils.SensorConfig;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -55,7 +61,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 /*
 This needs some rather major refactoring
@@ -82,6 +92,12 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
     private final static String broadcastReceiverTag = "homeActivity:broadcastReceiver";
     private final static String onAskMapUpdateReturnValueTag = "homeActivity:onAskMapUpdateReturnValue";
 
+    private final static String onAskServerForUpdateTag = "homeActivity:onAskServerForUpdate";
+    private final static String onGCMParsePointsTag = "homeActivity:onGCMParsePoints";
+    private final static String onGCMDrawBoxTag = "homeActivity:onGCMDrawBox";
+    private final static String onGetBoundingBoxTag = "homeActivity:onGetBoundingBox";
+
+
     private ProgressDialog mProgressDialog;
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
@@ -100,7 +116,8 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
 
         initGCM(); //set up GCM callbacks
         initIntentReceiver(); //the homeactivity should do all UI. needs to get callbacks
-        initDownloader(); //setup the map downloader
+        //
+        // zinitDownloader(); //setup the map downloader
         setupMap(); //load the map UI
         setupManualReportButton();
         //updateMap(); //download and parse the map code TODO implement fully
@@ -143,8 +160,59 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         }
     }
 
+    private void ask_server_for_update(Location loc) {
+            final Location location = loc;
+
+            StringRequest strReq = new StringRequest(Request.Method.POST,
+                    GCMConfig.MAP_UPDATE_REQ, new Response.Listener<String>() {
+
+                @Override
+                public void onResponse(String response) {
+                    Log.e(onAskServerForUpdateTag, "response: " + response);
+                    try {
+                        JSONObject obj = new JSONObject(response);
+                        Toast.makeText(getApplicationContext(), obj.get("message").toString(), Toast.LENGTH_SHORT).show();
+
+                    } catch (JSONException e) {
+                        Log.e(onAskServerForUpdateTag, "json parsing error: " + e.getMessage());
+                        Toast.makeText(getApplicationContext(), "Can't update map!  " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    NetworkResponse networkResponse = error.networkResponse;
+                    Log.e(onAskServerForUpdateTag, "Can't update map! " + error.getMessage() + ", code: " + networkResponse);
+                    Toast.makeText(getApplicationContext(), "Can't update map! " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }) {
+
+                @Override
+                protected Map<String, String> getParams() {
+                    Map<String, String> params = new HashMap<>();
+                    if (location != null) {
+                        Double lat = location.getLatitude();
+                        Double lng = location.getLongitude();
+                        params.put("lat", String.valueOf(lat));
+                        params.put("lng", String.valueOf(lng));
+                    } else {
+                        params.put("lat", "");
+                        params.put("lng", "");
+                    }
+                    params.put("chat_name", onAskServerForUpdateTag);
+                    Log.e(onAskServerForUpdateTag, "params: " + params.toString());
+                    return params;
+                }
+            };
+            Main.getInstance().addToRequestQueue(strReq);
+
+    }
+
+
     // Download the map from the GW servers...
     public void updateMap() {
+        ask_server_for_update(null);
+        /*'
         downloadMap();
         try {
             GeoJSONObject geoJSON = GeoJSON.parse(readFromFile());
@@ -152,6 +220,7 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         catch (JSONException e) {
             e.printStackTrace();
         }
+        */
     }
 
     public void initDownloader() {
@@ -202,7 +271,6 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
             return true;
         }
 
-        //TODO change this into seperate login/tutorial models
         if (id == R.id.action_settings) {
             Intent intent = new Intent(this, SettingsPreferenceActivity.class);
             this.startActivity(intent);
@@ -215,6 +283,10 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
 
         if (id == R.id.action_refresh) {
             setupAskMapUpdate();
+        }
+
+        if (id == R.id.action_chat) {
+            startActivity(new Intent(HomeActivity.this, com.umich.gridwatch.Chat.activity.PreLoginActivity.class));
         }
 
         if (id == R.id.action_tutorial) {
@@ -258,7 +330,7 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         super.onResume();
         registerReceiver(mBroadcastReceiver, new IntentFilter(IntentConfig.INTENT_NAME));
         LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
-                new IntentFilter(GCMPreferences.REGISTRATION_COMPLETE));
+                new IntentFilter(GCMConfig.REGISTRATION_COMPLETE));
         startGWService();
     }
 
@@ -284,15 +356,19 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         return true;
     }
 
+
+
     // Init the GCM code
     private void initGCM() {
+
+
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 SharedPreferences sharedPreferences =
                         PreferenceManager.getDefaultSharedPreferences(context);
                 boolean sentToken = sharedPreferences
-                        .getBoolean(GCMPreferences.SENT_TOKEN_TO_SERVER, false);
+                        .getBoolean(GCMConfig.SENT_TOKEN_TO_SERVER, false);
                 if (sentToken) {
                     Log.d(initGCMTag, getString(R.string.gcm_send_message));
                 } else {
@@ -300,10 +376,18 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
                 }
             }
         };
+
+
+        /*
         if (checkPlayServices()) {
-            startService(new Intent(this, GCMRegistrationIntentService.class));
+            Intent s = new Intent(this, GCMRegistrationIntentService.class);
+            s.putExtra(GCMConfig.KEY, "");
+            startService(s);
         }
+        */
+
     }
+
 
     // Get the background process running... This little call is pretty important
     private void startGWService() {
@@ -311,9 +395,16 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         startService(intent);
     }
 
+
     // Shows the main map
     public void setupMap() {
         //TODO add in offline error message here... maybe cache last map if possible?... this doesnt seem to work yet
+        //TODO reload map when connectivity is restored
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.commit();
+
+
         if (!isConnected()) {
             Log.d(setupMapTag, "not connected");
             //DialogFragment dialog = new NoConnectionDialog();
@@ -321,13 +412,13 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
             Fragment fragment = new UnconnectedMapFragment();
             FragmentManager fragmentManager = getSupportFragmentManager();
             fragmentManager.beginTransaction()
-                    .replace(R.id.content_frame, fragment)
+                    .replace(R.id.content_frame, fragment, "Unconnected Map")
                     .commit();
         } else {
             Fragment fragment = new MapFragment();
             FragmentManager fragmentManager = getSupportFragmentManager();
             fragmentManager.beginTransaction()
-                    .replace(R.id.content_frame, fragment)
+                    .replace(R.id.content_frame, fragment, "Connected Map")
                     .commit();
         }
     }
@@ -361,6 +452,33 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
         }
     }
 
+
+    public ArrayList<LatLng> GCMParsePoints(String to_parse) {
+        //String to_parse = "[[-15.7,30.2], [-15,49]]";
+        Log.w(onGCMParsePointsTag, "PARSING");
+
+        to_parse = to_parse.substring(1,to_parse.length()-1);
+        Log.w(onGCMParsePointsTag, to_parse);
+
+        ArrayList<LatLng> points = new ArrayList<>();
+        String[] a = to_parse.split(" ");
+        for (int i = 0; i < a.length; i++) {
+            String cur = a[i];
+            String pair[];
+            if (String.valueOf(a[i].charAt(a[i].length()-1)).equals(",")) {
+                pair = cur.substring(1,cur.length()-2).split(",");
+            } else {
+                pair = cur.substring(1,cur.length()-1).split(",");
+            }
+            Double lat = Double.valueOf(pair[0].toString()).doubleValue();
+            Double lng = Double.valueOf(pair[1].toString()).doubleValue();
+            LatLng point = new LatLng(lat, lng);
+            points.add(point);
+            Log.w(onGCMParsePointsTag, (String.valueOf(lat) + "," + String.valueOf(lng)));
+        }
+        return points;
+    }
+
     // Generate the GCM ask UI
     public void setupAskReport(int i) {
         cur_event_index = i;
@@ -379,6 +497,15 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
                 setupAskReport(intent.getIntExtra(IntentConfig.INTENT_EXTRA_EVENT_GCM_ASK_INDEX, 0));
                 Log.d(broadcastReceiverTag, "confirm gcm ask");
             }
+            if (intent.getStringExtra(IntentConfig.INTENT_TO_HOME).equals(IntentConfig.INTENT_EXTRA_EVENT_GCM_MAP_UPDATE)) {
+                Log.d(broadcastReceiverTag, "confirm point update");
+                String to_parse = intent.getStringExtra(IntentConfig.INTENT_EXTRA_EVENT_GCM_MAP_POINT_KEY);
+                Log.d(broadcastReceiverTag, to_parse);
+                ArrayList<LatLng> points = GCMParsePoints(to_parse);
+                BoundingBox b = getBoundingBox(points);
+                BoundingBox shifted_b = shiftBoundingBox(b);
+                GCMDrawBox(b);
+            }
             /*
             else if (intent.getStringExtra(IntentConfig.INTENT_TO_HOME).equals(IntentConfig.INTENT_EXTRA_EVENT_CONFIRM_DELETE)) {
                 Log.w(broadcastReceiverTag, "confirm delete");
@@ -387,6 +514,72 @@ public class HomeActivity extends ActionBarActivity implements ReportDialog.Repo
             */
         }
     };
+
+    public BoundingBox shiftBoundingBox(BoundingBox b) {
+        double shift_maxLat, shift_maxLon, shift_minLat, shift_minLon;
+        Random random = new Random();
+        double r1 = random.nextDouble()/10000;
+        double r2 = random.nextDouble()/10000;
+        double r3 = random.nextDouble()/10000;
+        double r4 = random.nextDouble()/10000;
+        shift_maxLat = b.getLatNorth() + r1;
+        shift_minLat = b.getLatSouth() - r2;
+        shift_minLon = b.getLonEast() - r3;
+        shift_maxLon = b.getLonWest() + r1;
+        return new BoundingBox(shift_maxLat, shift_maxLon, shift_minLat, shift_minLon);
+    }
+
+    public BoundingBox getBoundingBox(ArrayList<LatLng> latLngs) {
+        double minLat = 90, minLon = 180,
+                maxLat = -90,
+                maxLon = -180;
+        for (final LatLng gp : latLngs) {
+            final double latitude = gp.getLatitude();
+            final double longitude = gp.getLongitude();
+            minLat = Math.min(minLat, latitude);
+            minLon = Math.min(minLon, longitude);
+            maxLat = Math.max(maxLat, latitude);
+            maxLon = Math.max(maxLon, longitude);
+        }
+        Log.d(onGetBoundingBoxTag, String.valueOf(minLat));
+        Log.d(onGetBoundingBoxTag, String.valueOf(minLon));
+        Log.d(onGetBoundingBoxTag, String.valueOf(maxLat));
+        Log.d(onGetBoundingBoxTag, String.valueOf(maxLon));
+        return new BoundingBox(maxLat, maxLon, minLat, minLon);
+    }
+
+    public void GCMDrawBox(BoundingBox b) {
+        Log.d(onGCMDrawBoxTag, b.toString());
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        for (Fragment f : fragments) {
+
+            if(f != null & f.getTag().equals("Connected Map")){
+                MapFragment mapFragment = (MapFragment) f;
+                LatLng north = new LatLng(b.getLatNorth(), b.getLonWest());
+                LatLng south = new LatLng(b.getLatSouth(), b.getLonWest());
+                LatLng east = new LatLng(b.getLatNorth(), b.getLonEast());
+                LatLng west = new LatLng(b.getLatSouth(), b.getLonEast());
+                ArrayList<LatLng> box = new ArrayList<>();
+                box.add(north);
+                box.add(east);
+                box.add(west);
+                box.add(south);
+                mapFragment.drawPolygon(box);
+
+
+            }
+        }
+
+
+
+
+        /*
+        mapView.addPolygon(new PolygonOptions()
+                .addAll(polygon)
+                .fillColor(Color.parseColor("#3bb2d0")));
+        */
+
+    }
 
     // TODO move to NetworkAndPhoneUtils
     public boolean isConnected() {
