@@ -9,14 +9,14 @@ class Event:
 import csv, math,datetime,time,urllib2, sched, json
 from httplib2 import Http
 
-group_size = 6 #reporting phones
+group_size = 3 #reporting phones
 time_thresh = 3000000 #mseconds thresh from min to max time of event
 cnt = 0 #phone array cnt
 sys_cnt = 0 #system cnt
 offset = 300 #for range in seconds
 
-#forever = True
-forever = False
+forever = True
+#forever = False
 
 phones = [{'id': 150, 'time': -1, 'state': 0},
           {'id': 151, 'time': -1, 'state': 0},
